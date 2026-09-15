@@ -4,11 +4,20 @@ A demo poster store built as a static Next.js export. Orders are not real and no
 
 ## Run it
 
+### Development
+
 ```bash
 pnpm install
 pnpm dev
-pnpm build && pnpm preview # served on port 4321
 ```
+
+### Static preview
+
+```bash
+pnpm build && pnpm preview
+```
+
+Served on port 4321.
 
 ## Tests
 
