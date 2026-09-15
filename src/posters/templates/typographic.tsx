@@ -1,5 +1,4 @@
-import type { TypographicParams, Palette } from '../types'
-import type { RootProps } from '../Poster'
+import type { TypographicParams, Palette, RootProps } from '../types'
 
 const W = 1000
 const H = 1414

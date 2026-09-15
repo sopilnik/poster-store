@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react'
-import type { BlocksParams, Palette } from '../types'
-import type { RootProps } from '../Poster'
+import type { BlocksParams, Palette, RootProps } from '../types'
 import { mulberry32 } from '../prng'
 
 const W = 1000
@@ -47,27 +46,25 @@ export function Blocks({
     let bandIndex = 0
     for (const fraction of fractions) {
       const height = jitter(fraction * available)
-      const color = bandIndex === 1 ? palette.accent : palette.ink
+      const color = bandIndex === 1 || bandIndex === 3 ? palette.accent : palette.ink
       shapes.push(<rect key={`band-${bandIndex}`} x={M} y={r(y)} width={r(W - 2 * M)} height={r(height)} fill={color} />)
       y += height
       bandIndex++
     }
     const cornerRadius = jitter(180)
-    shapes.push(<path key="quarter" d={quarterPath(W - M, H - M, cornerRadius)} fill={palette.accent} />)
+    shapes.push(<path key="quarter" d={quarterPath(W - M, H - M, cornerRadius)} fill={palette.ink} />)
   } else {
     const gap = 40
-    const fieldWidth = (W - 2 * M - gap) / 2
     const fieldHeight = H - 2 * M
-    const leftWidth = jitter(fieldWidth)
-    const leftHeight = jitter(fieldHeight)
-    shapes.push(<rect key="left" x={M} y={M} width={r(leftWidth)} height={r(leftHeight)} fill={palette.accent} />)
-    const rightWidth = jitter(fieldWidth)
-    const rightHeight = jitter(fieldHeight)
-    shapes.push(
-      <rect key="right" x={r(M + fieldWidth + gap)} y={M} width={r(rightWidth)} height={r(rightHeight)} fill={palette.ink} />,
-    )
+    const totalFieldWidth = W - 2 * M - gap
+    const leftWidth = jitter(totalFieldWidth / 2)
+    const rightWidth = totalFieldWidth - leftWidth
+    const rightX = M + leftWidth + gap
+    shapes.push(<rect key="left" x={M} y={M} width={r(leftWidth)} height={r(fieldHeight)} fill={palette.accent} />)
+    shapes.push(<rect key="right" x={r(rightX)} y={M} width={r(rightWidth)} height={r(fieldHeight)} fill={palette.accent} />)
     const bridgeRadius = jitter(140)
-    shapes.push(<path key="quarter" d={quarterPath(W / 2, H / 2, bridgeRadius)} fill={palette.accent} />)
+    const bridgeCx = rightX + bridgeRadius / 2
+    shapes.push(<path key="quarter" d={quarterPath(bridgeCx, H / 2, bridgeRadius)} fill={palette.ink} />)
   }
 
   return (

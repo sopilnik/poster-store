@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react'
-import type { OrbitParams, Palette } from '../types'
-import type { RootProps } from '../Poster'
+import type { OrbitParams, Palette, RootProps } from '../types'
 import { mulberry32 } from '../prng'
 
 const W = 1000
@@ -20,7 +19,7 @@ export function Orbit({
   const rand = mulberry32(seed)
   const baseCx = W / 2 + offset * 300
   const baseCy = H / 2 - offset * 200
-  const unit = (W * 0.9) / rings
+  const step = 440 / rings
   const shifts: { dx: number; dy: number }[] = []
   for (let i = 0; i < rings; i++) {
     shifts.push({ dx: (rand() * 2 - 1) * 24, dy: (rand() * 2 - 1) * 24 })
@@ -29,7 +28,7 @@ export function Orbit({
   const circles: ReactElement[] = []
   let ringNumber = 1
   for (const shift of shifts) {
-    const radius = ringNumber * unit
+    const radius = ringNumber * step
     const strokeWidth = rings > 1 ? 18 + ((4 - 18) * (ringNumber - 1)) / (rings - 1) : 18
     const cx = baseCx + shift.dx
     const cy = baseCy + shift.dy

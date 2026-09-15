@@ -1,14 +1,11 @@
-import type { SVGProps } from 'react'
-import type { PosterSpec, Palette } from './types'
+import type { PosterSpec, Palette, RootProps } from './types'
 import { Typographic } from './templates/typographic'
 import { Grid } from './templates/grid'
 import { Stripes } from './templates/stripes'
 import { Orbit } from './templates/orbit'
 import { Blocks } from './templates/blocks'
 
-export type RootProps = Partial<
-  Pick<SVGProps<SVGSVGElement>, 'className' | 'width' | 'height' | 'aria-label' | 'aria-hidden' | 'role'>
->
+export type { RootProps } from './types'
 
 export function Poster({
   spec,

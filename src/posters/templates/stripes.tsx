@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react'
-import type { StripesParams, Palette } from '../types'
-import type { RootProps } from '../Poster'
+import type { StripesParams, Palette, RootProps } from '../types'
 
 const W = 1000
 const H = 1414
@@ -51,8 +50,9 @@ export function Stripes({
       )
     }
   }
+  const numeralSize = 520
   const numeralX = W / 2
-  const numeralY = r(H / 2 + 520 * 0.35)
+  const numeralY = r(H / 2 + numeralSize * 0.35)
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414" width="1000" height="1414" role="img" {...rootProps}>
       <rect x="0" y="0" width="1000" height="1414" fill={palette.background} />
@@ -65,7 +65,7 @@ export function Stripes({
         stroke={palette.background}
         strokeWidth="14"
         fontFamily="Space Grotesk"
-        fontSize="520"
+        fontSize={numeralSize}
         fontWeight={700}
       >
         {numeral}

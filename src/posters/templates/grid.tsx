@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react'
-import type { GridParams, Palette } from '../types'
-import type { RootProps } from '../Poster'
+import type { GridParams, Palette, RootProps } from '../types'
 import { mulberry32 } from '../prng'
 
 const W = 1000

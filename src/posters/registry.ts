@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react'
-import type { TemplateId, ParamsFor, Palette } from './types'
-import type { RootProps } from './Poster'
+import type { TemplateId, ParamsFor, Palette, RootProps } from './types'
 import { Typographic } from './templates/typographic'
 import { Grid } from './templates/grid'
 import { Stripes } from './templates/stripes'
