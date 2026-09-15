@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+public/posters
+public/og
+playwright-report
+test-results
+coverage
+*.tsbuildinfo
+.env*
+!.env.example
