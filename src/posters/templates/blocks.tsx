@@ -54,7 +54,7 @@ export function Blocks({
     const cornerRadius = jitter(180)
     shapes.push(<path key="quarter" d={quarterPath(W - M, H - M, cornerRadius)} fill={palette.ink} />)
   } else {
-    const gap = 40
+    const gap = 64
     const fieldHeight = H - 2 * M
     const totalFieldWidth = W - 2 * M - gap
     const leftWidth = jitter(totalFieldWidth / 2)

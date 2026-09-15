@@ -5,8 +5,6 @@ import { Stripes } from './templates/stripes'
 import { Orbit } from './templates/orbit'
 import { Blocks } from './templates/blocks'
 
-export type { RootProps } from './types'
-
 export function Poster({
   spec,
   palette,

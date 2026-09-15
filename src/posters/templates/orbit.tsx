@@ -20,9 +20,10 @@ export function Orbit({
   const baseCx = W / 2 + offset * 300
   const baseCy = H / 2 - offset * 200
   const step = 440 / rings
+  const wobble = Math.min(24, Math.max(0, (step - 18) / 3))
   const shifts: { dx: number; dy: number }[] = []
   for (let i = 0; i < rings; i++) {
-    shifts.push({ dx: (rand() * 2 - 1) * 24, dy: (rand() * 2 - 1) * 24 })
+    shifts.push({ dx: (rand() * 2 - 1) * wobble, dy: (rand() * 2 - 1) * wobble })
   }
   const accentIndex = Math.floor(rand() * rings)
   const circles: ReactElement[] = []
