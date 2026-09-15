@@ -17,3 +17,11 @@ test('filter, search and sort', () => {
   const byName = sortProducts(PRODUCTS, 'name'); expect(byName[0]!.name.localeCompare(byName[1]!.name)).toBeLessThanOrEqual(0)
   expect(sortProducts(PRODUCTS, 'default')).toEqual(PRODUCTS)                 // catalog order, and a new array
 })
+test('searchProducts with an empty needle returns a copy', () => {
+  const out = searchProducts(PRODUCTS, '')
+  expect(out).toEqual(PRODUCTS); expect(out).not.toBe(PRODUCTS)
+})
+test('serializeShopQuery trims and drops a blank q', () => {
+  expect(serializeShopQuery({ sort: 'default', q: '   ' })).toBe('')
+  expect(serializeShopQuery({ sort: 'default', q: ' hush ' })).toBe('?q=hush')
+})

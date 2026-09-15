@@ -1,7 +1,5 @@
 import type { Palette, PaletteId } from '../posters/types'
 
-export type { Palette, PaletteId }
-
 export const PALETTES = {
   paper:  { id: 'paper',  name: 'Paper',  background: '#F4F1EA', ink: '#14110F', accent: '#D94E1F' },
   ink:    { id: 'ink',    name: 'Ink',    background: '#14110F', ink: '#F4F1EA', accent: '#E9C46A' },

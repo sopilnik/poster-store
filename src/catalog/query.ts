@@ -25,14 +25,15 @@ export function serializeShopQuery(q: ShopQuery): string {
   const params = new URLSearchParams()
   if (q.collection) params.set('collection', q.collection)
   if (q.sort !== 'default') params.set('sort', q.sort)
-  if (q.q) params.set('q', q.q)
+  const trimmedQ = q.q.trim()
+  if (trimmedQ) params.set('q', trimmedQ)
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ''
 }
 
 export function searchProducts(products: Product[], q: string): Product[] {
   const needle = q.trim().toLowerCase()
-  if (!needle) return products
+  if (!needle) return [...products]
   return products.filter(p => p.name.toLowerCase().includes(needle) || p.tags.some(tag => tag.toLowerCase().includes(needle)))
 }
 
