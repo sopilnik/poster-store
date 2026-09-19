@@ -6,6 +6,10 @@ beforeEach(() => {
   window.localStorage.clear()
 })
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 test('saveCart then loadCart round-trips', () => {
   const items: CartItem[] = [
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 3 },
@@ -36,10 +40,14 @@ test('qty 99 becomes 10', () => {
 })
 
 test('a throwing localStorage.getItem yields an empty cart and saveCart still does not throw', () => {
-  const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    throw new Error('blocked')
+  })
+  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('blocked')
   })
   expect(loadCart()).toEqual([])
-  spy.mockRestore()
-  expect(() => saveCart([])).not.toThrow()
+  expect(() =>
+    saveCart([{ sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 }])
+  ).not.toThrow()
 })

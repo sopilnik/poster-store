@@ -15,7 +15,7 @@ export function loadCart(): CartItem[] {
     if (!raw) return []
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return []
-    const items: CartItem[] = []
+    const byKey = new Map<string, CartItem>()
     for (const entry of parsed) {
       if (!entry || typeof entry !== 'object') continue
       const sku = (entry as { sku?: unknown }).sku
@@ -23,10 +23,11 @@ export function loadCart(): CartItem[] {
       const variant = parseSku(sku)
       if (!variant) continue
       const rawQty = (entry as { qty?: unknown }).qty
-      const qty = clampQty(Math.trunc(Number(rawQty)) || 1)
-      items.push({ sku, ...variant, qty })
+      const qty = Math.trunc(Number(rawQty)) || 1
+      const existing = byKey.get(sku)
+      byKey.set(sku, { sku, ...variant, qty: (existing?.qty ?? 0) + qty })
     }
-    return items
+    return [...byKey.values()].map((item) => ({ ...item, qty: clampQty(item.qty) }))
   } catch {
     return []
   }
