@@ -14,5 +14,5 @@ export type ParamsFor<K extends TemplateId> = Extract<PosterSpec, { template: K 
 export type Palette = { id: PaletteId; name: string; background: string; ink: string; accent: string }
 export type PaletteId = 'paper' | 'ink' | 'signal' | 'ocean' | 'sage' | 'sand'
 export type RootProps = Partial<
-  Pick<SVGProps<SVGSVGElement>, 'className' | 'width' | 'height' | 'aria-label' | 'aria-hidden' | 'role'>
+  Pick<SVGProps<SVGSVGElement>, 'className' | 'width' | 'height' | 'aria-label' | 'aria-hidden' | 'role' | 'x' | 'y'>
 >
