@@ -1,4 +1,4 @@
-import { ORDER_KEY, loadOrder, saveOrder } from './storage'
+import { ORDER_KEY, clearOrder, loadOrder, saveOrder } from './storage'
 import type { Order } from './order'
 
 const ORDER: Order = {
@@ -54,6 +54,23 @@ test('loadOrder returns null when items is not an array', () => {
 test('loadOrder returns null when totalCents is not finite', () => {
   window.localStorage.setItem(ORDER_KEY, '{"id":"FL-ABC123","createdAt":"x","items":[],"subtotalCents":1,"shippingCents":1,"totalCents":null,"delivery":"standard","address":{}}')
   expect(loadOrder()).toBeNull()
+})
+
+test('clearOrder removes a stored order', () => {
+  saveOrder(ORDER)
+  clearOrder()
+  expect(loadOrder()).toBeNull()
+})
+
+test('clearOrder does not throw when nothing is stored', () => {
+  expect(() => clearOrder()).not.toThrow()
+})
+
+test('a throwing localStorage.removeItem does not throw', () => {
+  vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+    throw new Error('blocked')
+  })
+  expect(() => clearOrder()).not.toThrow()
 })
 
 test('a throwing localStorage.getItem yields null and saveOrder still does not throw', () => {

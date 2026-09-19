@@ -11,6 +11,8 @@ export type Order = {
   totalCents: number
   address: Omit<CheckoutInput, 'payment' | 'delivery'>
   delivery: DeliveryId
+  payment?: 'demo' | 'stripe'
+  paymentStatus?: 'pending' | 'paid'
 }
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'

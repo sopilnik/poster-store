@@ -5,11 +5,18 @@ import { useEffect, useReducer } from 'react'
 import { loadOrder } from '@/checkout/storage'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
+import { PaymentStatus } from './PaymentStatus'
+
+type MountState = { mounted: false; sessionId: null } | { mounted: true; sessionId: string | null }
+
+function mountReducer(_state: MountState, sessionId: string | null): MountState {
+  return { mounted: true, sessionId }
+}
 
 export function SuccessView() {
-  const [mounted, markMounted] = useReducer(() => true, false)
+  const [{ mounted, sessionId }, markMounted] = useReducer(mountReducer, { mounted: false, sessionId: null })
   useEffect(() => {
-    markMounted()
+    markMounted(new URLSearchParams(window.location.search).get('session_id'))
   }, [])
 
   const order = mounted ? loadOrder() : null
@@ -31,6 +38,7 @@ export function SuccessView() {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">Order {order.id}</h1>
+      <PaymentStatus sessionId={sessionId} />
       <ul className="flex flex-col gap-3">
         {order.items.map(line => (
           <li key={line.sku} className="flex gap-3 text-sm">

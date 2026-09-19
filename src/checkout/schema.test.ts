@@ -49,6 +49,19 @@ test('an unknown country fails on the country path', () => {
   }
 })
 
+test('payment stripe passes', () => {
+  const result = checkoutSchema.safeParse({ ...VALID, payment: 'stripe' })
+  expect(result.success).toBe(true)
+})
+
+test('an unknown payment value fails on the payment path', () => {
+  const result = checkoutSchema.safeParse({ ...VALID, payment: 'crypto' })
+  expect(result.success).toBe(false)
+  if (!result.success) {
+    expect(result.error.issues.some(issue => issue.path[0] === 'payment')).toBe(true)
+  }
+})
+
 test('a missing delivery fails on the delivery path', () => {
   const withoutDelivery: Record<string, unknown> = { ...VALID }
   delete withoutDelivery.delivery

@@ -3,7 +3,14 @@ import userEvent from '@testing-library/user-event'
 import { priceLines } from '@/cart/totals'
 import type { CartItem } from '@/cart/types'
 import type { CheckoutInput } from '@/checkout/schema'
+import { hasCheckoutApi } from '@/lib/site'
 import { CheckoutForm } from './CheckoutForm'
+
+vi.mock('@/lib/site', () => ({ hasCheckoutApi: vi.fn(() => false) }))
+
+beforeEach(() => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(false)
+})
 
 function lines() {
   const items: CartItem[] = [
@@ -45,4 +52,26 @@ test('filling valid values and choosing express calls onSubmit once with deliver
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
   expect(onSubmit.mock.calls[0]?.[0]).toMatchObject({ delivery: 'express' })
+})
+
+test('the Stripe option does not render when the checkout API is not configured', () => {
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+  expect(screen.queryByRole('radio', { name: /card via stripe/i })).not.toBeInTheDocument()
+})
+
+test('the Stripe option renders with its helper text when the checkout API is configured', () => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(true)
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+
+  expect(screen.getByRole('radio', { name: /card via stripe/i })).toBeInTheDocument()
+  expect(screen.getByText(/use card number 4242 4242 4242 4242/i)).toBeInTheDocument()
+})
+
+test('choosing Stripe changes the submit label to Pay with card', async () => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(true)
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  expect(screen.getByRole('button', { name: /pay with card/i })).toBeInTheDocument()
 })

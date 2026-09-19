@@ -55,6 +55,14 @@ middleware, no server actions, no `useSearchParams`; shop filters live in the UR
 instead. The cart and a placed order are held in browser storage, read and written through small typed
 helpers.
 
+## Card payments
+
+Checkout always offers a demo payment that takes no card details. When a checkout API is
+configured through `NEXT_PUBLIC_CHECKOUT_API`, a second option opens a real Stripe Checkout
+session in test mode, using Stripe's own test card. That function is not part of the static
+export — it lives in `functions/checkout/`, with its own README covering how to run it locally
+and what deploying it needs.
+
 ## Licence
 
 MIT for the store's own code, see `LICENSE`. `src/components/ui/` is adapted from shadcn/ui (MIT).

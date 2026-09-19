@@ -34,6 +34,15 @@ export function saveOrder(order: Order): void {
   }
 }
 
+export function clearOrder(): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.removeItem(ORDER_KEY)
+  } catch {
+    // Storage can be unavailable (private mode); nothing to clean up in that case.
+  }
+}
+
 export function loadOrder(): Order | null {
   if (typeof window === 'undefined') return null
   try {

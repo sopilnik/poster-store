@@ -7,6 +7,7 @@ import { subtotalCents, totalCents } from '@/cart/totals'
 import type { PricedLine } from '@/cart/types'
 import { checkoutSchema, COUNTRIES, type CheckoutInput } from '@/checkout/schema'
 import { formatCents } from '@/lib/money'
+import { hasCheckoutApi } from '@/lib/site'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -130,6 +131,17 @@ function PaymentField({ control }: { control: Control<CheckoutInput> }) {
           <RadioGroupItem value="demo" />
           Demo payment, no charge
         </Label>
+        {hasCheckoutApi() ? (
+          <div className="flex flex-col gap-1">
+            <Label className="flex items-center gap-2 font-normal">
+              <RadioGroupItem value="stripe" />
+              Card via Stripe (test mode)
+            </Label>
+            <p className="pl-6 text-xs text-muted-foreground">
+              Test mode. Use card number 4242 4242 4242 4242 with any future date and any CVC. Nothing is charged.
+            </p>
+          </div>
+        ) : null}
       </RadioGroup>
     </div>
   )
@@ -140,15 +152,17 @@ export function CheckoutForm({
   onSubmit,
 }: {
   lines: PricedLine[]
-  onSubmit: (input: CheckoutInput) => void
+  onSubmit: (input: CheckoutInput) => void | Promise<void>
 }) {
   const { control, handleSubmit, formState } = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: DEFAULT_VALUES,
   })
   const delivery = useWatch({ control, name: 'delivery' })
+  const payment = useWatch({ control, name: 'payment' })
   const subtotal = subtotalCents(lines)
   const total = totalCents(subtotal, delivery)
+  const submitLabel = payment === 'stripe' ? 'Pay with card' : 'Place demo order'
 
   return (
     <form className="grid gap-8 md:grid-cols-[1fr_360px]" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -157,7 +171,9 @@ export function CheckoutForm({
       </div>
       <div className="flex flex-col gap-6 md:order-1">
         <p className="text-sm text-muted-foreground">
-          Nothing is sent anywhere. What you type stays in this browser and is cleared when you close the tab.
+          {hasCheckoutApi()
+            ? 'Choosing card payment sends your order lines to Stripe, in test mode. Your address stays in this browser either way.'
+            : 'Nothing is sent anywhere. What you type stays in this browser and is cleared when you close the tab.'}
         </p>
         <TextField control={control} name="email" label="Email" type="email" />
         <TextField control={control} name="fullName" label="Full name" />
@@ -168,7 +184,7 @@ export function CheckoutForm({
         <DeliveryField control={control} />
         <PaymentField control={control} />
         <Button type="submit" disabled={formState.isSubmitting}>
-          Place demo order · {formatCents(total)}
+          {submitLabel} · {formatCents(total)}
         </Button>
       </div>
     </form>

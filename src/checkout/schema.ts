@@ -27,7 +27,7 @@ export const checkoutSchema = z.object({
     .regex(/^[A-Za-z0-9 -]{3,12}$/, 'Use 3 to 12 letters, digits, spaces or dashes'),
   country: z.enum(COUNTRIES),
   delivery: z.enum(['standard', 'express']),
-  payment: z.literal('demo'),
+  payment: z.enum(['demo', 'stripe']),
 })
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>
