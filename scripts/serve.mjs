@@ -20,4 +20,4 @@ createServer(async (req, res) => {
   const body = await readFile(file).catch(() => null)
   if (!body) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' }); return res.end('not found') }
   res.writeHead(status, { 'content-type': types[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store' }); res.end(body)
-}).listen(port, () => console.log(`serving out/ on http://localhost:${port}`))
+}).listen(port, '127.0.0.1', () => console.log(`serving out/ on http://localhost:${port}`))

@@ -13,7 +13,7 @@ afterEach(() => {
 
 test('the no-order branch still renders a heading', async () => {
   window.history.replaceState(null, '', '/checkout/success/')
-  window.localStorage.removeItem('formline.order')
+  window.sessionStorage.removeItem('formline.order')
   render(<SuccessView />)
 
   expect(await screen.findByRole('heading', { level: 1, name: 'Order confirmation' })).toBeInTheDocument()

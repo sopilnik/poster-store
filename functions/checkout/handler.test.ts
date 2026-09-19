@@ -65,6 +65,7 @@ test('no CORS headers when the function shares the store origin', async () => {
 test('POST with a valid body returns 200 and the session url', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -77,6 +78,7 @@ test('POST with a valid body returns 200 and the session url', async () => {
 test('POST with an unknown sku returns 400', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'not-a-real-sku-a3-ink', qty: 1 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -86,6 +88,7 @@ test('POST with an unknown sku returns 400', async () => {
 test('POST with qty 0 returns 400', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'quiet-hours-a3-ink', qty: 0 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -95,6 +98,7 @@ test('POST with qty 0 returns 400', async () => {
 test('POST with qty 11 returns 400', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'quiet-hours-a3-ink', qty: 11 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -104,7 +108,40 @@ test('POST with qty 11 returns 400', async () => {
 test('POST with a body over 8 KB returns 413, detected by content-length', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
-    headers: { 'content-length': String(9 * 1024) },
+    headers: { 'content-type': 'application/json', 'content-length': String(9 * 1024) },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
+})
+
+test('POST with a malformed content-length header returns 413', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'content-length': 'not-a-number' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
+})
+
+test('POST with a hex-disguised content-length header does not bypass the 8 KB limit', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'content-length': '0x2000',
+    },
+    body: JSON.stringify({ ...VALID_BODY, email: `${'a'.repeat(9 * 1024)}@example.com` }),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
+})
+
+test('POST with a negative content-length header returns 413', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'content-length': '-1' },
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -114,6 +151,7 @@ test('POST with a body over 8 KB returns 413, detected by content-length', async
 test('POST with a body over 8 KB returns 413, detected by the actual body size', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ ...VALID_BODY, email: `${'a'.repeat(9 * 1024)}@example.com` }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -123,6 +161,7 @@ test('POST with a body over 8 KB returns 413, detected by the actual body size',
 test('POST with a valid body returns 502 with the error shape and CORS header when create throws', async () => {
   const request = new Request('https://api.example.test/checkout/session', {
     method: 'POST',
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(
@@ -138,6 +177,59 @@ test('POST with a valid body returns 502 with the error shape and CORS header wh
   expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:4321')
   expect(response.headers.get('content-type')).toBe('application/json')
   await expect(response.json()).resolves.toEqual({ error: 'Could not create a checkout session' })
+})
+
+test('POST with a non-JSON content type returns 415 without creating a session', async () => {
+  const create = vi.fn(async () => ({ id: 'cs_test_1', url: 'https://checkout.stripe.test/s' }))
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'text/plain' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory({ create }))
+  expect(response.status).toBe(415)
+  expect(create).not.toHaveBeenCalled()
+})
+
+test('POST with no content type returns 415', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(415)
+})
+
+test('POST with a foreign Origin header returns 403 without creating a session', async () => {
+  const create = vi.fn(async () => ({ id: 'cs_test_1', url: 'https://checkout.stripe.test/s' }))
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'https://attacker.example' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory({ create }))
+  expect(response.status).toBe(403)
+  expect(create).not.toHaveBeenCalled()
+})
+
+test('POST with the store\'s own Origin header succeeds', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'http://localhost:4321' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(200)
+})
+
+test('POST with no Origin header succeeds, keeping curl and the Stripe CLI working', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(200)
 })
 
 test('GET with a valid session id returns the stripped status body', async () => {

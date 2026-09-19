@@ -76,9 +76,13 @@ export function CheckoutPageClient() {
           }),
         })
         if (!response.ok) throw new Error('checkout session request failed')
-        const data = (await response.json()) as { url: string }
+        const data: unknown = await response.json()
+        const url = data && typeof data === 'object' ? (data as Record<string, unknown>).url : undefined
+        if (typeof url !== 'string' || !url.startsWith('https://')) {
+          throw new Error('checkout session response did not include a valid url')
+        }
         dispatch({ type: 'clear' })
-        window.location.assign(data.url)
+        window.location.assign(url)
       } catch {
         toast('Card payment is unavailable right now. You can place a demo order instead.')
       }

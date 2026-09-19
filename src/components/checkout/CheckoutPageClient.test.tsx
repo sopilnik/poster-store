@@ -31,7 +31,7 @@ function contextValue(overrides: Partial<CartContextValue> = {}): CartContextVal
 }
 
 beforeEach(() => {
-  window.localStorage.clear()
+  window.sessionStorage.clear()
   pushMock.mockClear()
   vi.mocked(toast).mockClear()
   vi.unstubAllGlobals()
@@ -66,6 +66,36 @@ test('a rejected checkout session request keeps the form and shows the toast', a
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(pushMock).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: /pay with card/i })).toBeInTheDocument()
+})
+
+test('a checkout session response without a valid https url keeps the cart and does not navigate', async () => {
+  const assignSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: assignSpy })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'javascript:alert(1)' }) }))
+  )
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
+  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
+  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
+  await userEvent.type(screen.getByLabelText(/city/i), 'London')
+  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
+
+  await waitFor(() => {
+    expect(toast).toHaveBeenCalledWith('Card payment is unavailable right now. You can place a demo order instead.')
+  })
+  expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
+  expect(assignSpy).not.toHaveBeenCalled()
 })
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {

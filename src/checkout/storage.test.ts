@@ -20,7 +20,7 @@ const ORDER: Order = {
 }
 
 beforeEach(() => {
-  window.localStorage.clear()
+  window.sessionStorage.clear()
 })
 
 afterEach(() => {
@@ -32,27 +32,33 @@ test('saveOrder then loadOrder round-trips', () => {
   expect(loadOrder()).toEqual(ORDER)
 })
 
+test('saveOrder writes to sessionStorage, not localStorage', () => {
+  saveOrder(ORDER)
+  expect(window.sessionStorage.getItem(ORDER_KEY)).not.toBeNull()
+  expect(window.localStorage.getItem(ORDER_KEY)).toBeNull()
+})
+
 test('loadOrder returns null when nothing is stored', () => {
   expect(loadOrder()).toBeNull()
 })
 
 test('loadOrder returns null on malformed JSON', () => {
-  window.localStorage.setItem(ORDER_KEY, '{not json')
+  window.sessionStorage.setItem(ORDER_KEY, '{not json')
   expect(loadOrder()).toBeNull()
 })
 
 test('loadOrder returns null when the record is missing an id', () => {
-  window.localStorage.setItem(ORDER_KEY, JSON.stringify({ ...ORDER, id: undefined }))
+  window.sessionStorage.setItem(ORDER_KEY, JSON.stringify({ ...ORDER, id: undefined }))
   expect(loadOrder()).toBeNull()
 })
 
 test('loadOrder returns null when items is not an array', () => {
-  window.localStorage.setItem(ORDER_KEY, JSON.stringify({ ...ORDER, items: 'nope' }))
+  window.sessionStorage.setItem(ORDER_KEY, JSON.stringify({ ...ORDER, items: 'nope' }))
   expect(loadOrder()).toBeNull()
 })
 
 test('loadOrder returns null when totalCents is not finite', () => {
-  window.localStorage.setItem(ORDER_KEY, '{"id":"FL-ABC123","createdAt":"x","items":[],"subtotalCents":1,"shippingCents":1,"totalCents":null,"delivery":"standard","address":{}}')
+  window.sessionStorage.setItem(ORDER_KEY, '{"id":"FL-ABC123","createdAt":"x","items":[],"subtotalCents":1,"shippingCents":1,"totalCents":null,"delivery":"standard","address":{}}')
   expect(loadOrder()).toBeNull()
 })
 
@@ -66,14 +72,14 @@ test('clearOrder does not throw when nothing is stored', () => {
   expect(() => clearOrder()).not.toThrow()
 })
 
-test('a throwing localStorage.removeItem does not throw', () => {
+test('a throwing sessionStorage.removeItem does not throw', () => {
   vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
     throw new Error('blocked')
   })
   expect(() => clearOrder()).not.toThrow()
 })
 
-test('a throwing localStorage.getItem yields null and saveOrder still does not throw', () => {
+test('a throwing sessionStorage.getItem yields null and saveOrder still does not throw', () => {
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked')
   })

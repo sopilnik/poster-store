@@ -124,6 +124,18 @@ test('idempotencyKey does not depend on item order', async () => {
   expect(a).toBe(b)
 })
 
+test('idempotencyKey changes when only the email differs on an otherwise identical order', async () => {
+  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
+  const b = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'other@example.com')
+  expect(a).not.toBe(b)
+})
+
+test('idempotencyKey differs between no email and an empty email', async () => {
+  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard')
+  const b = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
+  expect(a).not.toBe(b)
+})
+
 test('createSession sends the total as line items plus one shipping option and passes an idempotency key', async () => {
   const stripe = fakeStripe()
   const result = await createSession(
@@ -151,8 +163,14 @@ test('createSession sets customer_email only when an email is given', async () =
     { orderId: 'FL-AB12C3', items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' },
     ENV
   )
-  const call = stripe.calls.create[0] as { params: import('./session').CheckoutSessionParams }
+  const call = stripe.calls.create[0] as {
+    params: import('./session').CheckoutSessionParams
+    options: { idempotencyKey: string }
+  }
   expect(call.params.customer_email).toBe('buyer@example.com')
+  expect(call.options.idempotencyKey).toBe(
+    await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
+  )
 })
 
 test('createSession rejects an unknown sku without calling stripe', async () => {
@@ -190,6 +208,19 @@ test('createSession returns 502 when stripe.checkout.sessions.create throws', as
 test('getSession rejects an id not starting with cs_', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, 'evt_not_a_session')
+  expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
+})
+
+test('getSession rejects an over-long id without calling stripe', async () => {
+  const stripe = fakeStripe()
+  const result = await getSession(stripe, `cs_${'a'.repeat(5 * 1024)}`)
+  expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
+  expect(stripe.calls.create).toHaveLength(0)
+})
+
+test('getSession rejects an id with characters outside the allowed shape', async () => {
+  const stripe = fakeStripe()
+  const result = await getSession(stripe, 'cs_test_1; DROP TABLE sessions')
   expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
 })
 

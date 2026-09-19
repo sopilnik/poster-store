@@ -43,11 +43,16 @@ function remotePath(file) {
   return path.relative(OUT_DIR, file).split(path.sep).map(encodeURIComponent).join('/')
 }
 
-async function uploadFile(env, file) {
-  const remote = remotePath(file)
+const UPLOAD_RETRIES = 3
+const UPLOAD_RETRY_DELAY_MS = 500
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function putFile(env, remote, body) {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${remote}`
-  const body = await readFile(file)
-  const response = await fetch(url, {
+  return fetch(url, {
     method: 'PUT',
     headers: {
       AccessKey: env.BUNNY_STORAGE_PASSWORD,
@@ -55,10 +60,30 @@ async function uploadFile(env, file) {
     },
     body,
   })
-  if (!response.ok) {
-    throw new Error(`upload failed (${response.status}) for ${remote}`)
+}
+
+async function uploadFile(env, file) {
+  const remote = remotePath(file)
+  const body = await readFile(file)
+
+  let lastError
+  for (let attempt = 1; attempt <= UPLOAD_RETRIES; attempt += 1) {
+    let response
+    try {
+      response = await putFile(env, remote, body)
+    } catch (error) {
+      lastError = error
+      if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
+      continue
+    }
+    if (response.ok) return body.byteLength
+    if (response.status < 500) {
+      throw new Error(`upload failed (${response.status}) for ${remote}`)
+    }
+    lastError = new Error(`upload failed (${response.status}) for ${remote}`)
+    if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
   }
-  return body.byteLength
+  throw lastError
 }
 
 async function purgeCache(env) {
@@ -82,8 +107,10 @@ async function main() {
   }
 
   const files = await listFiles(OUT_DIR)
+  const nonHtmlFiles = files.filter(file => path.extname(file) !== '.html')
+  const htmlFiles = files.filter(file => path.extname(file) === '.html')
   let totalBytes = 0
-  for (const file of files) {
+  for (const file of [...nonHtmlFiles, ...htmlFiles]) {
     totalBytes += await uploadFile(env, file)
   }
 

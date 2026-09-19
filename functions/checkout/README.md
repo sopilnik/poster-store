@@ -23,12 +23,13 @@ pnpm install
 pnpm functions:dev
 ```
 
-Create a `.dev.vars` file next to `wrangler.toml` with your own test-mode `STRIPE_SECRET_KEY` and
-`STRIPE_WEBHOOK_SECRET` before running the command above; it is git-ignored and must never be
-committed.
+Create a `.dev.vars` file next to `wrangler.toml` with your own test-mode `STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET` and a `SITE_URL` (for example `http://localhost:4321`) before running the
+command above; it is git-ignored and must never be committed.
 
-`wrangler dev` reads `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` from `.dev.vars`; `SITE_URL` comes
-from `wrangler.toml`. Point the store at it with `NEXT_PUBLIC_CHECKOUT_API=http://127.0.0.1:8787 pnpm build`.
+`wrangler dev` reads `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `SITE_URL` from `.dev.vars`; there
+is no fallback, so a missing value fails fast instead of silently pointing at localhost. Point the store
+at it with `NEXT_PUBLIC_CHECKOUT_API=http://127.0.0.1:8787 pnpm build`.
 
 To forward Stripe's webhooks to the local function, use the Stripe CLI:
 

@@ -28,7 +28,7 @@ function isWellFormedOrder(value: unknown): value is Order {
 export function saveOrder(order: Order): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(ORDER_KEY, JSON.stringify(order))
+    window.sessionStorage.setItem(ORDER_KEY, JSON.stringify(order))
   } catch {
     // Storage can be unavailable (private mode) or full; the order stays in memory only.
   }
@@ -37,7 +37,7 @@ export function saveOrder(order: Order): void {
 export function clearOrder(): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.removeItem(ORDER_KEY)
+    window.sessionStorage.removeItem(ORDER_KEY)
   } catch {
     // Storage can be unavailable (private mode); nothing to clean up in that case.
   }
@@ -46,7 +46,7 @@ export function clearOrder(): void {
 export function loadOrder(): Order | null {
   if (typeof window === 'undefined') return null
   try {
-    const raw = window.localStorage.getItem(ORDER_KEY)
+    const raw = window.sessionStorage.getItem(ORDER_KEY)
     if (!raw) return null
     const parsed: unknown = JSON.parse(raw)
     if (!isWellFormedOrder(parsed)) return null

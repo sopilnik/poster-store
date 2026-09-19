@@ -130,10 +130,11 @@ export function buildLineItems(
 export async function idempotencyKey(
   orderId: string,
   items: { sku: string; qty: number }[],
-  delivery: DeliveryId
+  delivery: DeliveryId,
+  email?: string
 ): Promise<string> {
   const sorted = [...items].sort((a, b) => a.sku.localeCompare(b.sku))
-  const canonical = `${orderId}|${delivery}|${sorted.map(item => `${item.sku}:${item.qty}`).join(',')}`
+  const canonical = `${orderId}|${delivery}|${sorted.map(item => `${item.sku}:${item.qty}`).join(',')}|${email ?? ''}`
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical))
   return Array.from(new Uint8Array(digest))
     .map(byte => byte.toString(16).padStart(2, '0'))
@@ -152,7 +153,7 @@ export async function createSession(
   const built = buildLineItems(input.items, input.delivery, env.SITE_URL)
   if (!built.ok) return { ok: false, status: 400, error: `Unknown SKU: ${built.sku}` }
 
-  const key = await idempotencyKey(input.orderId, input.items, input.delivery)
+  const key = await idempotencyKey(input.orderId, input.items, input.delivery, input.email)
   const params: CheckoutSessionParams = {
     mode: 'payment',
     line_items: built.lineItems,
@@ -188,7 +189,7 @@ export type GetSessionResult =
   | { ok: false; status: number; error: string }
 
 export async function getSession(stripe: StripeLike, id: string): Promise<GetSessionResult> {
-  if (!id.startsWith('cs_')) return { ok: false, status: 400, error: 'Invalid session id' }
+  if (!/^cs_[A-Za-z0-9_]{1,255}$/.test(id)) return { ok: false, status: 400, error: 'Invalid session id' }
   try {
     const session = await stripe.checkout.sessions.retrieve(id)
     return {

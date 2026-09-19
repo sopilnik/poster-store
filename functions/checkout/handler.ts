@@ -27,10 +27,19 @@ type ReadBodyResult = { ok: true; text: string } | { ok: false }
 
 async function readBody(request: Request): Promise<ReadBodyResult> {
   const contentLength = request.headers.get('content-length')
-  if (contentLength && Number(contentLength) > MAX_BODY_BYTES) return { ok: false }
+  if (contentLength !== null) {
+    const length = Number.parseInt(contentLength, 10)
+    if (Number.isNaN(length) || length < 0 || length > MAX_BODY_BYTES) return { ok: false }
+  }
   const text = await request.text()
   if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) return { ok: false }
   return { ok: true, text }
+}
+
+function isAllowedOrigin(request: Request, env: Env): boolean {
+  const origin = request.headers.get('origin')
+  if (!origin) return true
+  return origin === new URL(env.SITE_URL).origin
 }
 
 async function handleCreateSession(
@@ -39,6 +48,14 @@ async function handleCreateSession(
   makeStripe: (key: string) => StripeLike,
   headers: HeadersInit
 ): Promise<Response> {
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!contentType.startsWith('application/json')) {
+    return jsonResponse(415, { error: 'Unsupported content type' }, headers)
+  }
+  if (!isAllowedOrigin(request, env)) {
+    return jsonResponse(403, { error: 'Origin not allowed' }, headers)
+  }
+
   const body = await readBody(request)
   if (!body.ok) return jsonResponse(413, { error: 'Request body is too large' }, headers)
 

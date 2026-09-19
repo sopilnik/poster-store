@@ -1,6 +1,3 @@
 name = "formline-checkout"
 main = "functions/checkout/worker.ts"
 compatibility_date = "2026-09-19"
-
-[vars]
-SITE_URL = "http://localhost:4321"
