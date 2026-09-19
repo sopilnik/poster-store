@@ -32,6 +32,15 @@ test('a 2-char postal code fails on the postalCode path', () => {
   }
 })
 
+test('the postalCode message carries no raw pattern', () => {
+  const result = checkoutSchema.safeParse({ ...VALID, postalCode: 'AB' })
+  expect(result.success).toBe(false)
+  if (!result.success) {
+    const issue = result.error.issues.find(issue => issue.path[0] === 'postalCode')
+    expect(issue?.message.includes('/')).toBe(false)
+  }
+})
+
 test('an unknown country fails on the country path', () => {
   const result = checkoutSchema.safeParse({ ...VALID, country: 'Narnia' })
   expect(result.success).toBe(false)

@@ -17,6 +17,7 @@ export function SuccessView() {
   if (!order) {
     return (
       <div className="mt-6 flex flex-col items-start gap-2">
+        <h1 className="text-2xl font-bold tracking-tight">Order confirmation</h1>
         <p className="text-sm text-muted-foreground">
           A confirmation lives only in the tab that placed the order.
         </p>
