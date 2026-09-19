@@ -74,12 +74,12 @@ export function ProductOptions({ product }: { product: Product }) {
                 <label key={id} className="flex items-center gap-2 font-normal">
                   <Radio.Root
                     value={id}
-                    className="relative flex size-7 items-center justify-center rounded-full border border-border outline-none ring-primary ring-offset-2 ring-offset-background data-checked:ring-2 focus-visible:ring-2"
+                    className="group relative flex size-7 items-center justify-center rounded-full border border-border outline-none ring-primary ring-offset-2 ring-offset-background data-checked:ring-2 focus-visible:ring-2"
                     style={{ backgroundColor: p.background }}
                   >
                     <span
                       aria-hidden="true"
-                      className="size-2.5 rounded-full"
+                      className="size-2.5 rounded-full group-data-checked:hidden"
                       style={{ backgroundColor: p.ink }}
                     />
                     <Radio.Indicator className="absolute inset-0 flex items-center justify-center">

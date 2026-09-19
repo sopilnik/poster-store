@@ -47,6 +47,26 @@ test('palette swatches are radios named after the palette and reflect the select
   expect(paper).toHaveAttribute('aria-checked', 'false')
 })
 
+test('the ink dot yields to the check mark once a swatch is selected', async () => {
+  renderWithCart(vi.fn())
+
+  const paper = screen.getByRole('radio', { name: 'Paper' })
+  const ink = screen.getByRole('radio', { name: 'Ink' })
+  const paperDot = paper.querySelector('span[aria-hidden="true"]')
+  const inkDot = ink.querySelector('span[aria-hidden="true"]')
+
+  // The dot hides itself via the checked swatch's `data-checked` state (group-data-checked:hidden),
+  // so the check mark reads alone instead of merging with the dot underneath it.
+  expect(paperDot).toHaveClass('group-data-checked:hidden')
+  expect(paper).toHaveAttribute('data-checked', '')
+  expect(ink).not.toHaveAttribute('data-checked')
+
+  await userEvent.click(ink)
+  expect(inkDot).toHaveClass('group-data-checked:hidden')
+  expect(ink).toHaveAttribute('data-checked', '')
+  expect(paper).not.toHaveAttribute('data-checked')
+})
+
 test('quantity stays within 1 and 10', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
   renderWithCart(dispatch)
