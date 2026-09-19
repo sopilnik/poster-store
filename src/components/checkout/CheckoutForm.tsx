@@ -1,6 +1,6 @@
 'use client'
 
-import { useController, useForm, type Control } from 'react-hook-form'
+import { useController, useForm, useWatch, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SHIPPING } from '@/catalog/sizes'
 import { subtotalCents, totalCents } from '@/cart/totals'
@@ -142,11 +142,11 @@ export function CheckoutForm({
   lines: PricedLine[]
   onSubmit: (input: CheckoutInput) => void
 }) {
-  const { control, handleSubmit, watch, formState } = useForm<CheckoutInput>({
+  const { control, handleSubmit, formState } = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: DEFAULT_VALUES,
   })
-  const delivery = watch('delivery')
+  const delivery = useWatch({ control, name: 'delivery' })
   const subtotal = subtotalCents(lines)
   const total = totalCents(subtotal, delivery)
 
