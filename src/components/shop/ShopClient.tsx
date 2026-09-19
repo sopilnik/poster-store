@@ -55,9 +55,14 @@ export function ShopClient({ products }: { products: Product[] }) {
     window.addEventListener('popstate', sync)
     return () => {
       window.removeEventListener('popstate', sync)
-      if (debounceRef.current) clearTimeout(debounceRef.current)
+      clearPending()
     }
   }, [])
+
+  function clearPending() {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = null
+  }
 
   function update(next: ShopQuery) {
     setQuery(next)
@@ -66,26 +71,28 @@ export function ShopClient({ products }: { products: Product[] }) {
 
   function handleSearchChange(value: string) {
     setSearchText(value)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+    clearPending()
     debounceRef.current = setTimeout(() => {
       update({ ...query, q: value })
     }, SEARCH_DEBOUNCE_MS)
   }
 
   function handleCollectionChange(value: string) {
+    clearPending()
     if (value === 'all') {
-      update({ sort: query.sort, q: query.q })
+      update({ sort: query.sort, q: searchText })
       return
     }
-    if (isCollectionSlug(value)) update({ ...query, collection: value })
+    if (isCollectionSlug(value)) update({ ...query, q: searchText, collection: value })
   }
 
   function handleSortChange(value: SortId) {
-    update({ ...query, sort: value })
+    clearPending()
+    update({ ...query, q: searchText, sort: value })
   }
 
   function handleClear() {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+    clearPending()
     setSearchText('')
     update({ sort: 'default', q: '' })
   }

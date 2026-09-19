@@ -12,12 +12,12 @@ export function pageMetadata({
   path: string
   image?: string
 }): Metadata {
-  // The root layout's title template ("%s · Formline") only merges into a page's title when
-  // an intermediate layout sits between the root and the page; this app has none, so the
-  // template is applied here instead of left to Next's per-segment merge.
+  // The root layout's title template ("%s · Formline") applies to descendant segments only,
+  // never to the root page itself; returning the title as absolute opts every page here out
+  // of the template so the suffix is never appended twice.
   const fullTitle = `${title} · ${BRAND}`
   return {
-    title: fullTitle,
+    title: { absolute: fullTitle },
     description,
     alternates: { canonical: absoluteUrl(path) },
     openGraph: {
