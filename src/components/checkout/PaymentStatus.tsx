@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { formatCents } from '@/lib/money'
-import { CHECKOUT_API } from '@/lib/site'
+import { CHECKOUT_API, hasCheckoutApi } from '@/lib/site'
 
 type SessionStatus = { payment_status: string; amount_total: number | null }
 
 type State = { kind: 'loading' } | { kind: 'paid'; amountCents: number } | { kind: 'not-completed' } | { kind: 'unavailable' }
 
-export function PaymentStatus({ sessionId }: { sessionId: string | null }) {
+export function PaymentStatus({ sessionId, onPaid }: { sessionId: string | null; onPaid?: () => void }) {
   const [state, setState] = useState<State>({ kind: 'loading' })
 
   useEffect(() => {
-    if (!sessionId) return
+    if (!sessionId || !hasCheckoutApi()) return
     let cancelled = false
 
     fetch(`${CHECKOUT_API}/checkout/session?id=${encodeURIComponent(sessionId)}`)
@@ -24,6 +24,7 @@ export function PaymentStatus({ sessionId }: { sessionId: string | null }) {
         if (cancelled) return
         if (data.payment_status === 'paid' && typeof data.amount_total === 'number') {
           setState({ kind: 'paid', amountCents: data.amount_total })
+          onPaid?.()
         } else {
           setState({ kind: 'not-completed' })
         }
@@ -35,9 +36,9 @@ export function PaymentStatus({ sessionId }: { sessionId: string | null }) {
     return () => {
       cancelled = true
     }
-  }, [sessionId])
+  }, [sessionId, onPaid])
 
-  if (!sessionId || state.kind === 'loading') return null
+  if (!sessionId || !hasCheckoutApi() || state.kind === 'loading') return null
 
   const text =
     state.kind === 'paid'

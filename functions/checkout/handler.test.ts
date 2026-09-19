@@ -120,6 +120,26 @@ test('POST with a body over 8 KB returns 413, detected by the actual body size',
   expect(response.status).toBe(413)
 })
 
+test('POST with a valid body returns 502 with the error shape and CORS header when create throws', async () => {
+  const request = new Request('https://api.example.test/checkout/session', {
+    method: 'POST',
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(
+    request,
+    ENV,
+    makeStripeFactory({
+      create: async () => {
+        throw new Error('stripe outage')
+      },
+    })
+  )
+  expect(response.status).toBe(502)
+  expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:4321')
+  expect(response.headers.get('content-type')).toBe('application/json')
+  await expect(response.json()).resolves.toEqual({ error: 'Could not create a checkout session' })
+})
+
 test('GET with a valid session id returns the stripped status body', async () => {
   const request = new Request('https://api.example.test/checkout/session?id=cs_test_1', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())

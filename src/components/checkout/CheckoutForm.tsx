@@ -134,10 +134,10 @@ function PaymentField({ control }: { control: Control<CheckoutInput> }) {
         {hasCheckoutApi() ? (
           <div className="flex flex-col gap-1">
             <Label className="flex items-center gap-2 font-normal">
-              <RadioGroupItem value="stripe" />
+              <RadioGroupItem value="stripe" aria-describedby="stripe-hint" />
               Card via Stripe (test mode)
             </Label>
-            <p className="pl-6 text-xs text-muted-foreground">
+            <p id="stripe-hint" className="pl-6 text-xs text-muted-foreground">
               Test mode. Use card number 4242 4242 4242 4242 with any future date and any CVC. Nothing is charged.
             </p>
           </div>

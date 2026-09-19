@@ -143,3 +143,41 @@ test('a placed demo order is not restored and shows the placed message', async (
   expect(dispatch).not.toHaveBeenCalled()
   expect(loadOrder()).not.toBeNull()
 })
+
+test('a paid Stripe order is not restored, stays stored and the cart stays empty', async () => {
+  const lines = priceLines(CART_ITEMS)
+  const subtotal = subtotalCents(lines)
+  const shipping = shippingCents(subtotal, 'standard')
+  const order: Order = {
+    id: 'FL-AB12C3',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    items: lines,
+    subtotalCents: subtotal,
+    shippingCents: shipping,
+    totalCents: subtotal + shipping,
+    address: {
+      email: 'buyer@example.com',
+      fullName: 'Jordan Rivers',
+      address: '221B Baker Street',
+      city: 'London',
+      postalCode: 'NW1 6XE',
+      country: 'United Kingdom',
+    },
+    delivery: 'standard',
+    payment: 'stripe',
+    paymentStatus: 'paid',
+  }
+  saveOrder(order)
+
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ items: [], dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  expect(await screen.findByText('Your order was placed.')).toBeInTheDocument()
+  expect(dispatch).not.toHaveBeenCalledWith({ type: 'replace', items: order.items })
+  expect(loadOrder()).not.toBeNull()
+  expect(loadOrder()?.paymentStatus).toBe('paid')
+})

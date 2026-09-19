@@ -45,9 +45,11 @@ wrangler secret put STRIPE_SECRET_KEY
 wrangler secret put STRIPE_WEBHOOK_SECRET
 ```
 
-Then `wrangler deploy`. In CI, deployment is a separate job gated on the `main` branch and on the four
-secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`)
-being present.
+Then `wrangler deploy`. Point it at the production site first — `wrangler deploy --var SITE_URL:https://your-domain`,
+or a per-environment `vars` entry in `wrangler.toml` — otherwise the worker keeps sending buyers back to
+`http://localhost:4321` and leaves product images out of the checkout session. In CI, deployment is a separate job
+gated on the `main` branch and on the four secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) being present.
 
 ## What a production shop adds
 

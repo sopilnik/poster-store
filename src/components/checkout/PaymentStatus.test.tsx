@@ -1,5 +1,12 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { hasCheckoutApi } from '@/lib/site'
 import { PaymentStatus } from './PaymentStatus'
+
+vi.mock('@/lib/site', () => ({ CHECKOUT_API: 'http://127.0.0.1:8787', hasCheckoutApi: vi.fn(() => true) }))
+
+beforeEach(() => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(true)
+})
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -60,4 +67,39 @@ test('fetches the session by the given id', async () => {
   await waitFor(() => {
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('id=cs_test_1'))
   })
+})
+
+test('renders nothing and never fetches when no checkout API is configured', async () => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(false)
+  const fetchMock = vi.fn()
+  vi.stubGlobal('fetch', fetchMock)
+  const { container } = render(<PaymentStatus sessionId="cs_test_1" />)
+
+  expect(container).toBeEmptyDOMElement()
+  expect(fetchMock).not.toHaveBeenCalled()
+})
+
+test('calls onPaid once the session resolves as paid', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ payment_status: 'paid', amount_total: 3800 }) }))
+  )
+  const onPaid = vi.fn()
+  render(<PaymentStatus sessionId="cs_test_1" onPaid={onPaid} />)
+
+  await waitFor(() => {
+    expect(onPaid).toHaveBeenCalledTimes(1)
+  })
+})
+
+test('does not call onPaid when the session is not paid', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ payment_status: 'unpaid', amount_total: null }) }))
+  )
+  const onPaid = vi.fn()
+  render(<PaymentStatus sessionId="cs_test_1" onPaid={onPaid} />)
+
+  await screen.findByText('Payment not completed')
+  expect(onPaid).not.toHaveBeenCalled()
 })

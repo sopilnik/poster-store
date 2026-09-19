@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useReducer } from 'react'
-import { loadOrder } from '@/checkout/storage'
+import { loadOrder, saveOrder } from '@/checkout/storage'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
 import { PaymentStatus } from './PaymentStatus'
@@ -21,6 +21,12 @@ export function SuccessView() {
 
   const order = mounted ? loadOrder() : null
 
+  function handlePaid() {
+    if (order && order.paymentStatus !== 'paid') {
+      saveOrder({ ...order, paymentStatus: 'paid' })
+    }
+  }
+
   if (!order) {
     return (
       <div className="mt-6 flex flex-col items-start gap-2">
@@ -38,7 +44,7 @@ export function SuccessView() {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <h1 className="text-2xl font-bold tracking-tight">Order {order.id}</h1>
-      <PaymentStatus sessionId={sessionId} />
+      <PaymentStatus sessionId={sessionId} onPaid={handlePaid} />
       <ul className="flex flex-col gap-3">
         {order.items.map(line => (
           <li key={line.sku} className="flex gap-3 text-sm">

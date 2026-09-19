@@ -163,7 +163,12 @@ export async function createSession(
     ...(input.email ? { customer_email: input.email } : {}),
   }
 
-  const session = await stripe.checkout.sessions.create(params, { idempotencyKey: key })
+  let session: StripeCreatedSessionLike
+  try {
+    session = await stripe.checkout.sessions.create(params, { idempotencyKey: key })
+  } catch {
+    return { ok: false, status: 502, error: 'Could not create a checkout session' }
+  }
   if (!session.url) return { ok: false, status: 502, error: 'Stripe did not return a checkout url' }
   return { ok: true, url: session.url, id: session.id }
 }

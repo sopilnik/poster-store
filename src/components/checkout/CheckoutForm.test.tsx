@@ -67,6 +67,15 @@ test('the Stripe option renders with its helper text when the checkout API is co
   expect(screen.getByText(/use card number 4242 4242 4242 4242/i)).toBeInTheDocument()
 })
 
+test('the Stripe radio is described by its test-card hint for screen readers', () => {
+  vi.mocked(hasCheckoutApi).mockReturnValue(true)
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+
+  const radio = screen.getByRole('radio', { name: /card via stripe/i })
+  expect(radio).toHaveAttribute('aria-describedby', 'stripe-hint')
+  expect(document.getElementById('stripe-hint')).toHaveTextContent(/use card number 4242 4242 4242 4242/i)
+})
+
 test('choosing Stripe changes the submit label to Pay with card', async () => {
   vi.mocked(hasCheckoutApi).mockReturnValue(true)
   render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)

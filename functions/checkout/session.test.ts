@@ -166,6 +166,27 @@ test('createSession rejects an unknown sku without calling stripe', async () => 
   expect(stripe.calls.create).toHaveLength(0)
 })
 
+test('createSession returns 502 when stripe.checkout.sessions.create throws', async () => {
+  const stripe = fakeStripe({
+    checkout: {
+      sessions: {
+        create: async () => {
+          throw new Error('stripe outage')
+        },
+        retrieve: async () => {
+          throw new Error('unused')
+        },
+      },
+    },
+  })
+  const result = await createSession(
+    stripe,
+    { orderId: 'FL-AB12C3', items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' },
+    ENV
+  )
+  expect(result).toEqual({ ok: false, status: 502, error: 'Could not create a checkout session' })
+})
+
 test('getSession rejects an id not starting with cs_', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, 'evt_not_a_session')

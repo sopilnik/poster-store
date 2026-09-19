@@ -72,7 +72,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec wrangler deploy
+      - run: pnpm exec wrangler deploy --var SITE_URL:${{ vars.SITE_URL }}
         if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' && env.STRIPE_SECRET_KEY != '' && env.STRIPE_WEBHOOK_SECRET != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
