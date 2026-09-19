@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { CartProvider } from '@/cart/CartProvider'
+import { CartSheet } from '@/components/cart/CartSheet'
 import { ThemeProvider } from '@/components/site/ThemeProvider'
 import { Header } from '@/components/site/Header'
 import { Footer } from '@/components/site/Footer'
@@ -26,18 +28,21 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider>
-          <a
-            href="#main"
-            className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-background focus-visible:px-4 focus-visible:py-2 focus-visible:text-foreground focus-visible:shadow"
-          >
-            Skip to content
-          </a>
-          <Header />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <Toaster />
+          <CartProvider>
+            <a
+              href="#main"
+              className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-background focus-visible:px-4 focus-visible:py-2 focus-visible:text-foreground focus-visible:shadow"
+            >
+              Skip to content
+            </a>
+            <Header />
+            <main id="main" className="flex-1">
+              {children}
+            </main>
+            <Footer />
+            <Toaster />
+            <CartSheet />
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>

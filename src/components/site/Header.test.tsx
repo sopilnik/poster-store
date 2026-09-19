@@ -1,11 +1,14 @@
 import { render, screen } from '@testing-library/react'
+import { CartProvider } from '@/cart/CartProvider'
 import { Header } from './Header'
 import { ThemeProvider } from './ThemeProvider'
 
 test('links to the shop and a collection, and the theme toggle has an accessible name', () => {
   render(
     <ThemeProvider>
-      <Header />
+      <CartProvider>
+        <Header />
+      </CartProvider>
     </ThemeProvider>
   )
   expect(screen.getByRole('link', { name: 'Shop' })).toHaveAttribute('href', '/shop/')
