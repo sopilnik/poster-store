@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, statSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { PRODUCTS } from '../src/catalog/products'
 import { COLLECTIONS } from '../src/catalog/collections'
@@ -18,12 +18,11 @@ mkdirSync(posters, { recursive: true })
 mkdirSync(og, { recursive: true })
 
 function write(file: string, png: Buffer, max: number) {
-  writeFileSync(file, png)
-  const size = statSync(file).size
-  if (size > max) {
-    console.error(`render: ${file} is ${size} bytes, over the ${max} budget`)
+  if (png.length > max) {
+    console.error(`render: ${file} is ${png.length} bytes, over the ${max} budget`)
     process.exit(1)
   }
+  writeFileSync(file, png)
 }
 
 for (const p of PRODUCTS) {
@@ -51,9 +50,20 @@ for (const c of COLLECTIONS) {
   )
 }
 
+const featuredCollection = COLLECTIONS[0]!
+const featuredProduct = PRODUCTS.find(p => p.slug === featuredCollection.representative)!
 write(
   path.join(og, 'default.png'),
-  rasterize(ogCardMarkup({ title: 'Formline', subtitle: 'Posters made of geometry and type', priceLabel: '' }), { width: 1200 }),
+  rasterize(
+    ogCardMarkup({
+      title: 'Formline',
+      subtitle: 'Posters made of geometry and type',
+      priceLabel: '',
+      poster: featuredProduct,
+      palette: PALETTES[featuredProduct.palettes[0]!],
+    }),
+    { width: 1200 },
+  ),
   OG_MAX,
 )
 

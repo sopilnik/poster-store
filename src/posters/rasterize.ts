@@ -1,10 +1,16 @@
 import { Resvg } from '@resvg/resvg-js'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const fontDir = path.resolve(process.cwd(), 'public/fonts')
+const fontDir = fileURLToPath(new URL('../../public/fonts/', import.meta.url))
+const fontFiles = [path.join(fontDir, 'SpaceGrotesk-Regular.ttf'), path.join(fontDir, 'SpaceGrotesk-Bold.ttf')]
+for (const file of fontFiles) {
+  if (!existsSync(file)) throw new Error(`missing font file: ${file}`)
+}
 const options = {
   font: {
-    fontFiles: [path.join(fontDir, 'SpaceGrotesk-Regular.ttf'), path.join(fontDir, 'SpaceGrotesk-Bold.ttf')],
+    fontFiles,
     loadSystemFonts: false,
     defaultFontFamily: 'Space Grotesk',
   },

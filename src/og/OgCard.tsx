@@ -6,6 +6,14 @@ const CARD_BACKGROUND = '#F4F1EA'
 const CARD_TITLE = '#14110F'
 const CARD_PRICE = '#D94E1F'
 
+export type OgCardProps = {
+  title: string
+  subtitle: string
+  priceLabel: string
+  poster?: PosterSpec
+  palette?: Palette
+}
+
 function PosterBlock({ poster, palette }: { poster?: PosterSpec; palette?: Palette }) {
   if (!poster || !palette) return null
   const fit = Math.min(340 / 1000, 550 / 1414)
@@ -13,22 +21,15 @@ function PosterBlock({ poster, palette }: { poster?: PosterSpec; palette?: Palet
   const height = 1414 * fit
   const x = 40 + (340 - width) / 2
   const y = 40 + (550 - height) / 2
-  return <Poster spec={poster} palette={palette} rootProps={{ x, y, width, height }} />
+  return (
+    <>
+      <Poster spec={poster} palette={palette} rootProps={{ x, y, width, height }} />
+      <rect x={x} y={y} width={width} height={height} fill="none" stroke={CARD_TITLE} strokeOpacity="0.14" strokeWidth="2" />
+    </>
+  )
 }
 
-export function OgCard({
-  title,
-  subtitle,
-  priceLabel,
-  poster,
-  palette,
-}: {
-  title: string
-  subtitle: string
-  priceLabel: string
-  poster?: PosterSpec
-  palette?: Palette
-}) {
+export function OgCard({ title, subtitle, priceLabel, poster, palette }: OgCardProps) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
       <rect x="0" y="0" width="1200" height="630" fill={CARD_BACKGROUND} />
@@ -51,19 +52,7 @@ export function OgCard({
   )
 }
 
-export function ogCardMarkup({
-  title,
-  subtitle,
-  priceLabel,
-  poster,
-  palette,
-}: {
-  title: string
-  subtitle: string
-  priceLabel: string
-  poster?: PosterSpec
-  palette?: Palette
-}): string {
+export function ogCardMarkup({ title, subtitle, priceLabel, poster, palette }: OgCardProps): string {
   return renderToStaticMarkup(
     <OgCard title={title} subtitle={subtitle} priceLabel={priceLabel} poster={poster} palette={palette} />,
   )
