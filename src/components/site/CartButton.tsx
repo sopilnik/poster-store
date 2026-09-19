@@ -20,8 +20,11 @@ export function CartButton() {
     >
       <ShoppingCart aria-hidden="true" />
       {hydrated && n > 0 ? (
-        <Badge className="absolute -top-1 -right-1" aria-hidden="true">
-          {n}
+        <Badge
+          className="absolute top-0 right-0 h-4 min-w-4 -translate-y-[40%] translate-x-[40%] justify-center px-1 text-[11px] leading-none"
+          aria-hidden="true"
+        >
+          {n > 99 ? '99+' : n}
         </Badge>
       ) : null}
     </Button>

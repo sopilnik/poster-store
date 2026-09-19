@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Minus, Plus } from 'lucide-react'
+import { Minus, Plus, Check } from 'lucide-react'
+import { RadioGroup } from '@base-ui/react/radio-group'
+import { Radio } from '@base-ui/react/radio'
 import { useCart } from '@/cart/CartProvider'
 import { MAX_QTY } from '@/cart/reducer'
 import { PALETTES } from '@/catalog/palettes'
@@ -13,8 +15,6 @@ import type { Product, SizeId } from '@/catalog/types'
 import type { PaletteId } from '@/posters/types'
 import { PosterFrame } from './PosterFrame'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function clampQty(qty: number): number {
@@ -44,10 +44,15 @@ export function ProductOptions({ product }: { product: Product }) {
   }
 
   return (
-    <div className="grid gap-8 md:grid-cols-2">
-      <PosterFrame spec={product} palette={palette} label={`${product.name} preview in ${palette.name}`} />
+    <div className="grid gap-8 md:grid-cols-12">
+      <PosterFrame
+        spec={product}
+        palette={palette}
+        label={`${product.name} preview in ${palette.name}`}
+        className="mx-auto w-full max-w-[calc(38vh*1000/1414)] md:col-span-5 md:max-w-[calc(70vh*1000/1414)]"
+      />
 
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 md:col-span-7">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
           <p aria-live="polite" className="mt-1 text-xl font-medium">
@@ -66,21 +71,23 @@ export function ProductOptions({ product }: { product: Product }) {
             {product.palettes.map(id => {
               const p = PALETTES[id]
               return (
-                <Label key={id} className="flex items-center gap-2 font-normal">
-                  <RadioGroupItem value={id} />
-                  <span
-                    aria-hidden="true"
-                    className="relative inline-block size-5 rounded-full border border-border"
+                <label key={id} className="flex items-center gap-2 font-normal">
+                  <Radio.Root
+                    value={id}
+                    className="relative flex size-7 items-center justify-center rounded-full border border-border outline-none ring-primary ring-offset-2 ring-offset-background data-checked:ring-2 focus-visible:ring-2"
                     style={{ backgroundColor: p.background }}
                   >
                     <span
                       aria-hidden="true"
-                      className="absolute inset-[5px] rounded-full"
+                      className="size-2.5 rounded-full"
                       style={{ backgroundColor: p.ink }}
                     />
-                  </span>
+                    <Radio.Indicator className="absolute inset-0 flex items-center justify-center">
+                      <Check aria-hidden="true" className="size-3.5" style={{ color: p.ink }} />
+                    </Radio.Indicator>
+                  </Radio.Root>
                   {p.name}
-                </Label>
+                </label>
               )
             })}
           </RadioGroup>

@@ -34,6 +34,19 @@ test('price follows size and palette selection and add dispatches the variant', 
   })
 })
 
+test('palette swatches are radios named after the palette and reflect the selection', async () => {
+  renderWithCart(vi.fn())
+
+  const paper = screen.getByRole('radio', { name: 'Paper' })
+  const ink = screen.getByRole('radio', { name: 'Ink' })
+  expect(paper).toHaveAttribute('aria-checked', 'true')
+  expect(ink).toHaveAttribute('aria-checked', 'false')
+
+  await userEvent.click(ink)
+  expect(ink).toHaveAttribute('aria-checked', 'true')
+  expect(paper).toHaveAttribute('aria-checked', 'false')
+})
+
 test('quantity stays within 1 and 10', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
   renderWithCart(dispatch)

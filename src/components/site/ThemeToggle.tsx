@@ -2,10 +2,15 @@
 
 import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
-import { Moon, Sun, SunMoon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Moon, Monitor, Sun } from 'lucide-react'
+import { RadioGroup } from '@base-ui/react/radio-group'
+import { Radio } from '@base-ui/react/radio'
 
-const NEXT: Record<string, string> = { light: 'dark', dark: 'system', system: 'light' }
+const OPTIONS = [
+  { value: 'light', label: 'Light', Icon: Sun },
+  { value: 'system', label: 'System', Icon: Monitor },
+  { value: 'dark', label: 'Dark', Icon: Moon },
+] as const
 
 const noopSubscribe = () => () => {}
 const getClientSnapshot = () => true
@@ -18,21 +23,38 @@ function useMounted() {
   return useSyncExternalStore(noopSubscribe, getClientSnapshot, getServerSnapshot)
 }
 
+const segmentClass =
+  'flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'
+
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   const mounted = useMounted()
 
-  const current = mounted ? (theme ?? 'system') : 'system'
-  const Icon = !mounted ? SunMoon : current === 'light' ? Sun : current === 'dark' ? Moon : SunMoon
+  if (!mounted) {
+    return (
+      <div aria-hidden="true" className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+        {OPTIONS.map(({ value, Icon }) => (
+          <span key={value} className="flex size-8 items-center justify-center text-muted-foreground">
+            <Icon aria-hidden="true" className="size-4" />
+          </span>
+        ))}
+      </div>
+    )
+  }
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label={`Switch theme, current: ${current}`}
-      onClick={() => setTheme(NEXT[current] ?? 'system')}
+    <RadioGroup
+      aria-label="Theme"
+      value={theme ?? 'system'}
+      onValueChange={value => setTheme(value as string)}
+      className="flex w-fit items-center gap-0.5 rounded-md border border-border p-0.5"
     >
-      <Icon aria-hidden="true" />
-    </Button>
+      {OPTIONS.map(({ value, label, Icon }) => (
+        <Radio.Root key={value} value={value} className={segmentClass}>
+          <Icon aria-hidden="true" className="size-4" />
+          <span className="sr-only">{label}</span>
+        </Radio.Root>
+      ))}
+    </RadioGroup>
   )
 }

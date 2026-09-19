@@ -142,4 +142,14 @@
   html {
     @apply font-sans;
   }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='radio']:not([aria-disabled='true']),
+  [role='option'],
+  a[href],
+  label:has(input:not(:disabled)),
+  select,
+  summary {
+    cursor: pointer;
+  }
 }

@@ -43,7 +43,10 @@ export function SuccessView() {
 
   return (
     <div className="mt-6 flex flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight">Order {order.id}</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Thank you for your order</h1>
+        <p className="text-sm text-muted-foreground">Order {order.id}</p>
+      </div>
       <PaymentStatus sessionId={sessionId} onPaid={handlePaid} />
       <ul className="flex flex-col gap-3">
         {order.items.map(line => (

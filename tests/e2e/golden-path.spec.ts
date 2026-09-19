@@ -60,7 +60,8 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await submit.click()
 
   await expect(page).toHaveURL(/\/checkout\/success\/$/)
-  await expect(page.locator('h1')).toHaveText(/^Order FL-[A-Z0-9]{6}$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Thank you for your order')
+  await expect(page.getByText(/^Order FL-[A-Z0-9]{6}$/)).toBeVisible()
   await expect(page.getByText('This is a demo. No payment was taken and nothing will ship.')).toBeVisible()
 
   await page.goBack()
