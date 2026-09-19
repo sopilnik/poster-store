@@ -65,6 +65,19 @@ test('two stored entries of one sku past the cap merge and clamp to MAX_QTY', ()
   expect(items[0]?.qty).toBe(MAX_QTY)
 })
 
+test('two stored entries of one sku with a non-finite qty merge and clamp to MAX_QTY', () => {
+  // Written as a raw JSON string, not JSON.stringify of a JS array: JSON.stringify turns an
+  // Infinity value into null, which would erase the case this test exists to pin.
+  window.localStorage.setItem(
+    CART_KEY,
+    '[{"sku":"quiet-hours-a2-ink","productSlug":"quiet-hours","sizeId":"a2","paletteId":"ink","qty":1e400},' +
+      '{"sku":"quiet-hours-a2-ink","productSlug":"quiet-hours","sizeId":"a2","paletteId":"ink","qty":-1e400}]'
+  )
+  const items = loadCart()
+  expect(items).toHaveLength(1)
+  expect(items[0]?.qty).toBe(MAX_QTY)
+})
+
 test('a throwing localStorage.getItem yields an empty cart and saveCart still does not throw', () => {
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked')
