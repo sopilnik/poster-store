@@ -9,7 +9,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
   return (
     <Link
       href={`/products/${product.slug}/`}
-      className="group block rounded-md outline-none ring-primary ring-offset-2 hover:ring-2 focus-visible:ring-2"
+      className="group block rounded-md outline-none ring-primary ring-offset-2 ring-offset-background hover:ring-2 focus-visible:ring-2"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

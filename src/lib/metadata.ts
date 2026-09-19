@@ -15,15 +15,16 @@ export function pageMetadata({
   // The root layout's title template ("%s · Formline") only merges into a page's title when
   // an intermediate layout sits between the root and the page; this app has none, so the
   // template is applied here instead of left to Next's per-segment merge.
+  const fullTitle = `${title} · ${BRAND}`
   return {
-    title: `${title} · ${BRAND}`,
+    title: fullTitle,
     description,
     alternates: { canonical: absoluteUrl(path) },
     openGraph: {
-      title,
+      title: fullTitle,
       description,
       url: absoluteUrl(path),
-      images: [{ url: image, width: 1200, height: 630, alt: `${title} · ${BRAND}` }],
+      images: [{ url: image, width: 1200, height: 630, alt: fullTitle }],
     },
   }
 }

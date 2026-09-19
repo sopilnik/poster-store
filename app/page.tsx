@@ -54,7 +54,7 @@ export default function Home() {
             <Link
               key={c.slug}
               href={`/collections/${c.slug}/`}
-              className="group relative block overflow-hidden rounded-md border border-border outline-none ring-primary ring-offset-2 hover:ring-2 focus-visible:ring-2"
+              className="group relative block overflow-hidden rounded-md border border-border outline-none ring-primary ring-offset-2 ring-offset-background hover:ring-2 focus-visible:ring-2"
             >
               <Image
                 src={`/posters/${c.representative}.png`}
