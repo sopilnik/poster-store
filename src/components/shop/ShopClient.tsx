@@ -1,0 +1,163 @@
+'use client'
+
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { COLLECTIONS } from '@/catalog/collections'
+import { filterProducts, parseShopQuery, serializeShopQuery } from '@/catalog/query'
+import type { ShopQuery, SortId } from '@/catalog/query'
+import type { CollectionSlug, Product } from '@/catalog/types'
+import { ProductGrid } from '@/components/product/ProductGrid'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+const SEARCH_DEBOUNCE_MS = 150
+
+const COLLECTION_ITEMS: { label: string; value: string }[] = [
+  { label: 'All collections', value: 'all' },
+  ...COLLECTIONS.map(c => ({ label: c.name, value: c.slug })),
+]
+
+const SORT_ITEMS: { label: string; value: SortId }[] = [
+  { label: 'Default', value: 'default' },
+  { label: 'Price: low to high', value: 'price-asc' },
+  { label: 'Price: high to low', value: 'price-desc' },
+  { label: 'Name', value: 'name' },
+]
+
+const noopSubscribe = () => () => {}
+const getClientSnapshot = () => true
+const getServerSnapshot = () => false
+
+// Reads whether the component has hydrated on the client, without setting state from an
+// effect: the client and server snapshots differ on purpose, so React resolves the mismatch
+// during hydration instead of after a mount-triggered render.
+function useMounted() {
+  return useSyncExternalStore(noopSubscribe, getClientSnapshot, getServerSnapshot)
+}
+
+function isCollectionSlug(value: string): value is CollectionSlug {
+  return COLLECTIONS.some(c => c.slug === value)
+}
+
+export function ShopClient({ products }: { products: Product[] }) {
+  const mounted = useMounted()
+  const [query, setQuery] = useState<ShopQuery>(() => parseShopQuery(''))
+  const [searchText, setSearchText] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    function sync() {
+      const next = parseShopQuery(window.location.search)
+      setQuery(next)
+      setSearchText(next.q)
+    }
+    sync()
+    window.addEventListener('popstate', sync)
+    return () => {
+      window.removeEventListener('popstate', sync)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  function update(next: ShopQuery) {
+    setQuery(next)
+    window.history.replaceState(null, '', window.location.pathname + serializeShopQuery(next))
+  }
+
+  function handleSearchChange(value: string) {
+    setSearchText(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      update({ ...query, q: value })
+    }, SEARCH_DEBOUNCE_MS)
+  }
+
+  function handleCollectionChange(value: string) {
+    if (value === 'all') {
+      update({ sort: query.sort, q: query.q })
+      return
+    }
+    if (isCollectionSlug(value)) update({ ...query, collection: value })
+  }
+
+  function handleSortChange(value: SortId) {
+    update({ ...query, sort: value })
+  }
+
+  function handleClear() {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    setSearchText('')
+    update({ sort: 'default', q: '' })
+  }
+
+  const results = mounted ? filterProducts(products, query) : products
+  const count = results.length
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-12">
+      <h1 className="mb-6 text-2xl font-bold tracking-tight">All {products.length} posters</h1>
+
+      {mounted && (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Input
+            type="search"
+            aria-label="Search posters"
+            placeholder="Search posters"
+            value={searchText}
+            onChange={e => handleSearchChange(e.target.value)}
+            className="max-w-56"
+          />
+          <Select
+            items={COLLECTION_ITEMS}
+            value={query.collection ?? 'all'}
+            onValueChange={value => {
+              if (typeof value === 'string') handleCollectionChange(value)
+            }}
+          >
+            <SelectTrigger aria-label="Collection">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {COLLECTION_ITEMS.map(item => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            items={SORT_ITEMS}
+            value={query.sort}
+            onValueChange={value => {
+              if (typeof value === 'string') handleSortChange(value as SortId)
+            }}
+          >
+            <SelectTrigger aria-label="Sort">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_ITEMS.map(item => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={handleClear}>
+            Clear filters
+          </Button>
+        </div>
+      )}
+
+      <p aria-live="polite" className="mb-6 text-sm text-muted-foreground">
+        {count} poster{count === 1 ? '' : 's'}
+      </p>
+
+      {mounted && count === 0 ? (
+        <p className="text-muted-foreground">Nothing matches. Try another word or clear the filters.</p>
+      ) : (
+        <ProductGrid products={results} eager={4} />
+      )}
+    </div>
+  )
+}
