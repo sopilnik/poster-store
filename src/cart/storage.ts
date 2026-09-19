@@ -23,7 +23,7 @@ export function loadCart(): CartItem[] {
       const variant = parseSku(sku)
       if (!variant) continue
       const rawQty = (entry as { qty?: unknown }).qty
-      const qty = Math.trunc(Number(rawQty)) || 1
+      const qty = clampQty(Math.trunc(Number(rawQty)) || 1)
       const existing = byKey.get(sku)
       byKey.set(sku, { sku, ...variant, qty: (existing?.qty ?? 0) + qty })
     }
