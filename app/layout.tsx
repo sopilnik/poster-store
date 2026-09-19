@@ -1,29 +1,45 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next'
+import localFont from 'next/font/local'
+import { ThemeProvider } from '@/components/site/ThemeProvider'
+import { Header } from '@/components/site/Header'
+import { Footer } from '@/components/site/Footer'
+import { Toaster } from '@/components/ui/sonner'
+import { BRAND, SITE_URL } from '@/lib/site'
+import './globals.css'
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = localFont({
+  src: '../src/fonts/InterVariable.ttf',
+  variable: '--font-inter',
+  weight: '100 900',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: "Poster store",
-  description: "A demo poster storefront built as a static export.",
-};
+  metadataBase: new URL(SITE_URL),
+  title: { default: BRAND, template: `%s · ${BRAND}` },
+  description: 'Posters made of geometry and type. A demo store.',
+  openGraph: { images: ['/og/default.png'] },
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className="flex min-h-screen flex-col font-sans antialiased">
+        <ThemeProvider>
+          <a
+            href="#main"
+            className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-background focus-visible:px-4 focus-visible:py-2 focus-visible:text-foreground focus-visible:shadow"
+          >
+            Skip to content
+          </a>
+          <Header />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </ThemeProvider>
+      </body>
     </html>
-  );
+  )
 }
