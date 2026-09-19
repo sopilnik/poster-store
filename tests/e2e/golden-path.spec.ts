@@ -41,7 +41,6 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
 
   await cart.getByRole('button', { name: 'Checkout' }).click()
   await expect(page).toHaveURL(/\/checkout\/$/)
-  await page.keyboard.press('Escape')
   await expect(cart).toBeHidden()
 
   const summary = page.getByRole('heading', { name: 'Order summary' }).locator('xpath=ancestor::div[2]')

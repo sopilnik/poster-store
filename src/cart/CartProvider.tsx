@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react'
 import { cartReducer } from './reducer'
 import { loadCart, saveCart } from './storage'
 import type { CartContextValue, CartState } from './types'
@@ -23,16 +23,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (hydrated) saveCart(state.items)
   }, [state.items, hydrated])
 
+  const open = useCallback(() => setIsOpen(true), [])
+  const close = useCallback(() => setIsOpen(false), [])
+
   const value = useMemo<CartContextValue>(
     () => ({
       items: state.items,
       hydrated,
       isOpen,
-      open: () => setIsOpen(true),
-      close: () => setIsOpen(false),
+      open,
+      close,
       dispatch,
     }),
-    [state.items, hydrated, isOpen]
+    [state.items, hydrated, isOpen, open, close]
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

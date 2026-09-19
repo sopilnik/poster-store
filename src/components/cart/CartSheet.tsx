@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { useCart } from '@/cart/CartProvider'
 import { priceLines } from '@/cart/totals'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -10,6 +12,11 @@ import { CartSummary } from './CartSummary'
 export function CartSheet() {
   const { items, isOpen, close, dispatch } = useCart()
   const lines = priceLines(items)
+  const pathname = usePathname()
+
+  useEffect(() => {
+    close()
+  }, [pathname, close])
 
   return (
     <Sheet
