@@ -65,3 +65,11 @@ test('the field has the given accessible name', () => {
   const { field } = setup(1)
   expect(field).toHaveAccessibleName('Quantity')
 })
+
+test('clicking the label around the field focuses it', async () => {
+  const { field } = setup(1)
+  const wrapper = field.closest('label')
+  expect(wrapper).not.toBeNull()
+  await userEvent.click(wrapper!)
+  expect(field).toHaveFocus()
+})

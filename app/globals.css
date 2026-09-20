@@ -2,7 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *), &:is(:root:not(.light):not(.dark) *));
+@custom-variant dark {
+  &:is(.dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:is(:root:not(.light):not(.dark) *) {
+      @slot;
+    }
+  }
+}
 
 @font-face {
   font-family: 'Space Grotesk';

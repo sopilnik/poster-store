@@ -16,7 +16,7 @@ export function CartButton() {
       size="icon"
       aria-label={`Cart, ${n} item${n === 1 ? '' : 's'}`}
       onClick={open}
-      className="relative after:absolute after:-inset-1.5"
+      className="relative after:absolute after:-inset-y-1.5 after:-inset-x-px"
     >
       <ShoppingCart aria-hidden="true" />
       {hydrated && n > 0 ? (

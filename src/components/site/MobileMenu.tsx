@@ -22,7 +22,7 @@ export function MobileMenu() {
             variant="ghost"
             size="icon"
             aria-label="Menu"
-            className="relative after:absolute after:-inset-1.5 md:hidden"
+            className="relative after:absolute after:-inset-y-1.5 after:-inset-x-px md:hidden"
           />
         }
       >

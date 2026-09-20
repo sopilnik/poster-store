@@ -66,28 +66,30 @@ export function QuantityStepper({
       >
         <Minus aria-hidden="true" />
       </Button>
-      <input
-        type="text"
-        inputMode="numeric"
-        pattern="[0-9]*"
-        autoComplete="off"
-        aria-label={label}
-        className="relative h-7 w-10 rounded-[min(var(--radius-md),12px)] border border-input bg-background px-1 text-center text-base tabular-nums outline-none cursor-text focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring md:text-sm dark:bg-input/30 after:absolute after:-inset-y-2 after:-inset-x-1"
-        value={draft ?? String(value)}
-        onChange={e => handleChange(e.target.value)}
-        onKeyDown={e => {
-          if (e.key === 'ArrowUp') {
-            e.preventDefault()
-            step(1)
-          } else if (e.key === 'ArrowDown') {
-            e.preventDefault()
-            step(-1)
-          } else if (e.key === 'Enter') {
-            reset()
-          }
-        }}
-        onBlur={reset}
-      />
+      <label className="relative flex after:absolute after:-inset-y-2 after:-inset-x-1">
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          autoComplete="off"
+          aria-label={label}
+          className="h-7 w-10 rounded-[min(var(--radius-md),12px)] border border-input bg-background px-1 text-center text-base tabular-nums outline-none cursor-text focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring md:text-sm dark:bg-input/30"
+          value={draft ?? String(value)}
+          onChange={e => handleChange(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              step(1)
+            } else if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              step(-1)
+            } else if (e.key === 'Enter') {
+              reset()
+            }
+          }}
+          onBlur={reset}
+        />
+      </label>
       <Button
         variant="outline"
         size="icon-sm"

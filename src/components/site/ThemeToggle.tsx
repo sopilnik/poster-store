@@ -24,7 +24,7 @@ function useMounted() {
 }
 
 const segmentClass =
-  'relative flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-1.5 data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'
+  'relative flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-y-1.5 after:-inset-x-px data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
