@@ -16,7 +16,7 @@ export function ProductCard({ product, eager = false }: { product: Product; eage
         src={`/posters/${product.slug}.png`}
         width={360}
         height={509}
-        alt={product.name}
+        alt=""
         loading={eager ? 'eager' : 'lazy'}
         className="w-full rounded-md border border-border"
       />
