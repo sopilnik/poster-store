@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Minus, Plus, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { RadioGroup } from '@base-ui/react/radio-group'
 import { Radio } from '@base-ui/react/radio'
 import { useCart } from '@/cart/CartProvider'
-import { MAX_QTY } from '@/cart/reducer'
 import { PALETTES } from '@/catalog/palettes'
 import { SIZES } from '@/catalog/sizes'
 import { variantPriceCents } from '@/catalog/pricing'
@@ -16,10 +15,7 @@ import type { PaletteId } from '@/posters/types'
 import { PosterFrame } from './PosterFrame'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-
-function clampQty(qty: number): number {
-  return Math.min(MAX_QTY, Math.max(1, qty))
-}
+import { QuantityStepper } from '@/components/QuantityStepper'
 
 export function ProductOptions({ product }: { product: Product }) {
   const { dispatch, open } = useCart()
@@ -104,37 +100,33 @@ export function ProductOptions({ product }: { product: Product }) {
             <SelectTrigger aria-label="Size">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {sizeItems.map(item => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
+            <SelectContent className="w-auto min-w-(--anchor-width)">
+              {SIZES.map(s => (
+                <SelectItem
+                  key={s.id}
+                  value={s.id}
+                  aria-label={`${s.label} · ${s.cm} · ${formatCents(variantPriceCents(product, s.id))}`}
+                >
+                  <div className="grid w-full grid-cols-[2.5rem_1fr_4.5rem] items-center gap-2">
+                    <span>{s.label}</span>
+                    <span>{s.cm}</span>
+                    <span className="text-right tabular-nums">
+                      {formatCents(variantPriceCents(product, s.id))}
+                    </span>
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="Decrease quantity"
-            disabled={qty <= 1}
-            onClick={() => setQty(q => clampQty(q - 1))}
-          >
-            <Minus aria-hidden="true" />
-          </Button>
-          <span>{qty}</span>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            aria-label="Increase quantity"
-            disabled={qty >= MAX_QTY}
-            onClick={() => setQty(q => clampQty(q + 1))}
-          >
-            <Plus aria-hidden="true" />
-          </Button>
-        </div>
+        <QuantityStepper
+          value={qty}
+          onChange={setQty}
+          label="Quantity"
+          decreaseLabel="Decrease quantity"
+          increaseLabel="Increase quantity"
+        />
 
         <Button onClick={handleAdd}>Add to cart</Button>
       </div>

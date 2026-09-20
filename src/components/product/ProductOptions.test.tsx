@@ -18,11 +18,11 @@ function renderWithCart(dispatch: (action: CartAction) => void) {
 test('price follows size and palette selection and add dispatches the variant', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
   renderWithCart(dispatch)
-  expect(screen.getByText('$29.00')).toBeInTheDocument()
+  expect(screen.getByText('$29.00', { selector: 'p' })).toBeInTheDocument()
 
   await userEvent.click(screen.getByRole('combobox', { name: /size/i }))
   await userEvent.click(screen.getByRole('option', { name: /A2/ }))
-  expect(screen.getByText('$45.00')).toBeInTheDocument()
+  expect(screen.getByText('$45.00', { selector: 'p' })).toBeInTheDocument()
 
   await userEvent.click(screen.getByRole('radio', { name: 'Ink' }))
   await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
@@ -73,12 +73,30 @@ test('quantity stays within 1 and 10', async () => {
 
   const decrease = screen.getByRole('button', { name: 'Decrease quantity' })
   const increase = screen.getByRole('button', { name: 'Increase quantity' })
+  const field = screen.getByRole('textbox', { name: 'Quantity' })
 
   await userEvent.click(decrease)
-  expect(screen.getByText('1')).toBeInTheDocument()
+  expect(field).toHaveValue('1')
 
   for (let i = 0; i < 10; i++) {
     await userEvent.click(increase)
   }
-  expect(screen.getByText('10')).toBeInTheDocument()
+  expect(field).toHaveValue('10')
+})
+
+test('typing a quantity updates the price and the add-to-cart dispatch', async () => {
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  renderWithCart(dispatch)
+
+  const field = screen.getByRole('textbox', { name: 'Quantity' })
+  await userEvent.clear(field)
+  await userEvent.type(field, '3')
+  expect(screen.getByText('$87.00', { selector: 'p' })).toBeInTheDocument()
+
+  await userEvent.click(screen.getByRole('button', { name: /add to cart/i }))
+  expect(dispatch).toHaveBeenCalledWith({
+    type: 'add',
+    variant: { productSlug: 'quiet-hours', sizeId: 'a3', paletteId: 'paper' },
+    qty: 3,
+  })
 })

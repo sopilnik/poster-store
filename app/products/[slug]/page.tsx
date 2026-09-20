@@ -51,7 +51,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="mt-10 max-w-2xl">
-        <p className="text-muted-foreground">{product.description}</p>
+        <p className="leading-relaxed">{product.description}</p>
         <h2 className="mt-6 mb-2 text-lg font-semibold">Print details</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>Paper: 200 gsm matte</li>

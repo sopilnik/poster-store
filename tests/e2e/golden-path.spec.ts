@@ -29,6 +29,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
 
   await page.getByRole('combobox', { name: 'Size' }).click()
   await page.getByRole('option', { name: /^A2/ }).click()
+  await page.getByRole('textbox', { name: 'Quantity' }).fill('3')
   await page.getByRole('button', { name: 'Add to cart' }).click()
 
   const openCart = page.getByRole('button', { name: 'Open cart' })
@@ -38,6 +39,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   const cart = page.getByRole('dialog')
   await expect(cart.getByText('Hush', { exact: true })).toBeVisible()
   await expect(cart.getByText(/^A2/)).toBeVisible()
+  await expect(cart.getByRole('textbox', { name: 'Quantity of Hush, A2' })).toHaveValue('3')
 
   await cart.getByRole('button', { name: 'Checkout' }).click()
   await expect(page).toHaveURL(/\/checkout\/$/)

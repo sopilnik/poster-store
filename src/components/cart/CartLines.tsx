@@ -1,11 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Minus, Plus, Trash2 } from 'lucide-react'
-import { MAX_QTY } from '@/cart/reducer'
+import { Trash2 } from 'lucide-react'
 import type { CartAction, PricedLine } from '@/cart/types'
 import { Poster } from '@/posters/Poster'
 import { Button } from '@/components/ui/button'
+import { QuantityStepper } from '@/components/QuantityStepper'
 import { formatCents } from '@/lib/money'
 
 export function CartLines({
@@ -31,27 +31,14 @@ export function CartLines({
             <p className="text-sm text-muted-foreground">
               {line.size.label} · {line.palette.name}
             </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label={`Decrease quantity of ${line.product.name}`}
-                disabled={line.qty <= 1}
-                onClick={() => dispatch({ type: 'setQty', sku: line.sku, qty: line.qty - 1 })}
-              >
-                <Minus aria-hidden="true" />
-              </Button>
-              <span>{line.qty}</span>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                aria-label={`Increase quantity of ${line.product.name}`}
-                disabled={line.qty >= MAX_QTY}
-                onClick={() => dispatch({ type: 'setQty', sku: line.sku, qty: line.qty + 1 })}
-              >
-                <Plus aria-hidden="true" />
-              </Button>
-            </div>
+            <QuantityStepper
+              value={line.qty}
+              onChange={qty => dispatch({ type: 'setQty', sku: line.sku, qty })}
+              label={`Quantity of ${line.product.name}, ${line.size.label}`}
+              decreaseLabel={`Decrease quantity of ${line.product.name}`}
+              increaseLabel={`Increase quantity of ${line.product.name}`}
+              className="gap-2"
+            />
           </div>
           <div className="flex flex-col items-end justify-between">
             <p className="font-medium">{formatCents(line.lineCents)}</p>
