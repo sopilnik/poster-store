@@ -66,7 +66,7 @@ export function QuantityStepper({
       >
         <Minus aria-hidden="true" />
       </Button>
-      <label className="relative flex after:absolute after:-inset-y-2 after:-inset-x-1">
+      <label className="flex -my-2 -mx-1 py-2 px-1">
         <input
           type="text"
           inputMode="numeric"
