@@ -1,11 +1,9 @@
 import Link from 'next/link'
-import { Menu } from 'lucide-react'
 import { COLLECTIONS } from '@/catalog/collections'
 import { BRAND } from '@/lib/site'
-import { Button } from '@/components/ui/button'
-import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { ThemeToggle } from './ThemeToggle'
 import { CartButton } from './CartButton'
+import { MobileMenu } from './MobileMenu'
 
 export function Header() {
   return (
@@ -27,26 +25,7 @@ export function Header() {
         <div className="flex items-center gap-1">
           <ThemeToggle />
           <CartButton />
-          <Sheet>
-            <SheetTrigger
-              render={<Button variant="ghost" size="icon" aria-label="Menu" className="md:hidden" />}
-            >
-              <Menu aria-hidden="true" />
-            </SheetTrigger>
-            <SheetContent side="right">
-              <SheetHeader>
-                <SheetTitle>{BRAND}</SheetTitle>
-              </SheetHeader>
-              <nav aria-label="Mobile" className="flex flex-col gap-4 px-4">
-                <Link href="/shop/">Shop</Link>
-                {COLLECTIONS.map(c => (
-                  <Link key={c.slug} href={`/collections/${c.slug}/`}>
-                    {c.name}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+          <MobileMenu />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
+import { cn } from 'cn'
+import { buttonVariants } from '@/components/ui/button'
 import { PosterFrame } from '@/components/product/PosterFrame'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { COLLECTIONS } from '@/catalog/collections'
@@ -28,37 +29,39 @@ export default function Home() {
   return (
     <>
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-2 md:items-center md:py-20">
-        <div className="mx-auto w-full max-w-sm">
+        <div className="w-full max-w-sm">
           <PosterFrame spec={HERO_PRODUCT} palette={HERO_PALETTE} label={HERO_PRODUCT.name} />
         </div>
         <div className="flex flex-col gap-4">
           <h1 className="text-4xl font-bold tracking-tight">Posters made of geometry and type.</h1>
           <p className="text-muted-foreground">
-            Sixteen prints built from shapes, grids and a single bold word each, grouped into four palettes. A demo
-            storefront that shows how the shop works without shipping anything real.
+            Sixteen prints built from shapes, grids and type, grouped into four collections. A demo storefront that
+            shows how the shop works without shipping anything real.
           </p>
           <div className="flex flex-wrap gap-3">
-            <Button size="lg" nativeButton={false} render={<Link href="/shop/">Browse the shop</Link>} />
-            <Button
-              variant="outline"
-              size="lg"
-              nativeButton={false}
-              render={<Link href="/collections/monochrome/">Collections</Link>}
-            />
+            <Link href="/shop/" className={cn(buttonVariants({ size: 'lg' }))}>
+              Browse the shop
+            </Link>
+            <Link
+              href="/collections/monochrome/"
+              className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}
+            >
+              Collections
+            </Link>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8">
         <h2 className="mb-6 text-2xl font-bold tracking-tight">Shop by collection</h2>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
           {COLLECTIONS.map(c => (
             <Link
               key={c.slug}
               href={`/collections/${c.slug}/`}
               className="group block outline-none"
             >
-              <div className="aspect-[3/2] overflow-hidden rounded-md border border-border ring-primary ring-offset-2 ring-offset-background group-hover:ring-2 group-focus-visible:ring-2">
+              <div className="aspect-square overflow-hidden rounded-md border border-border ring-primary ring-offset-2 ring-offset-background group-hover:ring-2 group-focus-visible:ring-2">
                 <Image
                   src={`/posters/${c.representative}.png`}
                   width={360}
@@ -82,9 +85,9 @@ export default function Home() {
         <ProductGrid products={FEATURED} eager={2} />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12">
+      <section className="mx-auto max-w-6xl px-4 py-8 pb-16">
         <h2 className="mb-6 text-2xl font-bold tracking-tight">How it works</h2>
-        <ol className="grid gap-8 sm:grid-cols-3">
+        <ol className="grid gap-x-6 gap-y-8 sm:grid-cols-3">
           {STEPS.map((step, index) => (
             <li key={step.title} className="flex flex-col gap-2">
               <span className="text-sm font-medium text-primary">{`0${index + 1}`}</span>

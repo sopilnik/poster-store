@@ -9,7 +9,7 @@ export const metadata = pageMetadata({
 
 export default function CartPage() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-2xl font-bold tracking-tight">Your cart</h1>
       <CartPageClient />
     </div>

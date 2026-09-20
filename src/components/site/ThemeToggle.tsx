@@ -24,7 +24,7 @@ function useMounted() {
 }
 
 const segmentClass =
-  'flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'
+  'relative flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-1.5 data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -32,7 +32,7 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <div aria-hidden="true" className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+      <div aria-hidden="true" className="flex items-center gap-0.5 rounded-md border border-input p-0.5">
         {OPTIONS.map(({ value, Icon }) => (
           <span key={value} className="flex size-8 items-center justify-center text-muted-foreground">
             <Icon aria-hidden="true" className="size-4" />
@@ -47,7 +47,7 @@ export function ThemeToggle() {
       aria-label="Theme"
       value={theme ?? 'system'}
       onValueChange={value => setTheme(value as string)}
-      className="flex w-fit items-center gap-0.5 rounded-md border border-border p-0.5"
+      className="flex w-fit items-center gap-0.5 rounded-md border border-input p-0.5"
     >
       {OPTIONS.map(({ value, label, Icon }) => (
         <Radio.Root key={value} value={value} className={segmentClass}>

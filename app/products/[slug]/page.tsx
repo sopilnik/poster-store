@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       {collection && more.length > 0 && (
         <div className="mt-12">
-          <h2 className="mb-6 text-xl font-semibold">More from {collection.name}</h2>
+          <h2 className="mb-6 text-2xl font-bold tracking-tight">More from {collection.name}</h2>
           <ProductGrid products={more} />
         </div>
       )}

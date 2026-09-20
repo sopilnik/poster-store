@@ -1,6 +1,9 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { cn } from 'cn'
+import { buttonVariants } from '@/components/ui/button'
 import { BRAND } from '@/lib/site'
+
+export const metadata = { title: 'Page not found' }
 
 export default function NotFound() {
   return (
@@ -8,8 +11,12 @@ export default function NotFound() {
       <p className="text-sm font-medium text-muted-foreground">{BRAND}</p>
       <h1 className="text-2xl font-bold tracking-tight">This page does not exist.</h1>
       <div className="flex gap-3">
-        <Button nativeButton={false} render={<Link href="/">Home</Link>} />
-        <Button variant="outline" nativeButton={false} render={<Link href="/shop/">Shop</Link>} />
+        <Link href="/" className={cn(buttonVariants())}>
+          Home
+        </Link>
+        <Link href="/shop/" className={cn(buttonVariants({ variant: 'outline' }))}>
+          Shop
+        </Link>
       </div>
     </div>
   )

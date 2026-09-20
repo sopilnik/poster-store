@@ -31,6 +31,17 @@ test('submitting empty shows at least four error messages and onSubmit is not ca
   expect(onSubmit).not.toHaveBeenCalled()
 })
 
+test('submitting empty moves focus to the first invalid field', async () => {
+  const onSubmit = vi.fn<(input: CheckoutInput) => void>()
+  render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
+
+  await userEvent.click(screen.getByRole('button', { name: /place demo order/i }))
+
+  await waitFor(() => {
+    expect(document.activeElement).toBe(screen.getByLabelText(/email/i))
+  })
+})
+
 test('filling valid values and choosing express calls onSubmit once with delivery express', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
@@ -52,6 +63,17 @@ test('filling valid values and choosing express calls onSubmit once with deliver
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
   expect(onSubmit.mock.calls[0]?.[0]).toMatchObject({ delivery: 'express' })
+})
+
+test('the address fields carry autocomplete tokens and a name for browser autofill', () => {
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+
+  expect(screen.getByLabelText(/email/i)).toHaveAttribute('autocomplete', 'email')
+  expect(screen.getByLabelText(/full name/i)).toHaveAttribute('autocomplete', 'name')
+  expect(screen.getByLabelText(/^address/i)).toHaveAttribute('autocomplete', 'street-address')
+  expect(screen.getByLabelText(/city/i)).toHaveAttribute('autocomplete', 'address-level2')
+  expect(screen.getByLabelText(/postal code/i)).toHaveAttribute('autocomplete', 'postal-code')
+  expect(screen.getByLabelText(/email/i)).toHaveAttribute('name', 'email')
 })
 
 test('the Stripe option does not render when the checkout API is not configured', () => {

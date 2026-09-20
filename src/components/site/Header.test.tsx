@@ -4,6 +4,10 @@ import { CartProvider } from '@/cart/CartProvider'
 import { Header } from './Header'
 import { ThemeProvider } from './ThemeProvider'
 
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+}))
+
 test('links to the shop and a collection', () => {
   render(
     <ThemeProvider>

@@ -59,6 +59,7 @@ export function QuantityStepper({
       <Button
         variant="outline"
         size="icon-sm"
+        className="relative after:absolute after:-inset-2"
         aria-label={decreaseLabel}
         disabled={value <= MIN_QTY}
         onClick={() => step(-1)}
@@ -71,7 +72,7 @@ export function QuantityStepper({
         pattern="[0-9]*"
         autoComplete="off"
         aria-label={label}
-        className="h-7 w-10 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-1 text-center text-base tabular-nums outline-none cursor-text focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:border-input dark:bg-input/30"
+        className="relative h-7 w-10 rounded-[min(var(--radius-md),12px)] border border-input bg-background px-1 text-center text-base tabular-nums outline-none cursor-text focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring md:text-sm dark:bg-input/30 after:absolute after:-inset-y-2 after:-inset-x-1"
         value={draft ?? String(value)}
         onChange={e => handleChange(e.target.value)}
         onKeyDown={e => {
@@ -90,6 +91,7 @@ export function QuantityStepper({
       <Button
         variant="outline"
         size="icon-sm"
+        className="relative after:absolute after:-inset-2"
         aria-label={increaseLabel}
         disabled={value >= MAX_QTY}
         onClick={() => step(1)}

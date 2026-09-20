@@ -35,11 +35,13 @@ function TextField({
   name,
   label,
   type = 'text',
+  autoComplete,
 }: {
   control: Control<CheckoutInput>
   name: TextFieldName
   label: string
   type?: string
+  autoComplete?: string
 }) {
   const { field, fieldState } = useController({ control, name })
   const errorId = `${name}-error`
@@ -49,11 +51,10 @@ function TextField({
       <Input
         id={name}
         type={type}
-        value={field.value}
-        onChange={field.onChange}
-        onBlur={field.onBlur}
+        autoComplete={autoComplete}
         aria-invalid={fieldState.invalid}
         aria-describedby={fieldState.error ? errorId : undefined}
+        {...field}
       />
       {fieldState.error ? (
         <p role="alert" id={errorId} className="text-xs text-destructive">
@@ -106,7 +107,7 @@ function DeliveryField({ control }: { control: Control<CheckoutInput> }) {
       >
         <Label className="flex items-center gap-2 font-normal">
           <RadioGroupItem value="standard" />
-          Standard · {formatCents(SHIPPING.standard)}, free over $150
+          Standard · {formatCents(SHIPPING.standard)}, free from $150
         </Label>
         <Label className="flex items-center gap-2 font-normal">
           <RadioGroupItem value="express" />
@@ -175,11 +176,11 @@ export function CheckoutForm({
             ? 'Choosing card payment sends your order lines to Stripe, in test mode. Your address stays in this browser either way.'
             : 'Nothing is sent anywhere. What you type stays in this browser and is cleared when you close the tab.'}
         </p>
-        <TextField control={control} name="email" label="Email" type="email" />
-        <TextField control={control} name="fullName" label="Full name" />
-        <TextField control={control} name="address" label="Address" />
-        <TextField control={control} name="city" label="City" />
-        <TextField control={control} name="postalCode" label="Postal code" />
+        <TextField control={control} name="email" label="Email" type="email" autoComplete="email" />
+        <TextField control={control} name="fullName" label="Full name" autoComplete="name" />
+        <TextField control={control} name="address" label="Address" autoComplete="street-address" />
+        <TextField control={control} name="city" label="City" autoComplete="address-level2" />
+        <TextField control={control} name="postalCode" label="Postal code" autoComplete="postal-code" />
         <CountryField control={control} />
         <DeliveryField control={control} />
         <PaymentField control={control} />

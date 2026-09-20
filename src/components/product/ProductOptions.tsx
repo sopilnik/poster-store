@@ -45,7 +45,7 @@ export function ProductOptions({ product }: { product: Product }) {
         spec={product}
         palette={palette}
         label={`${product.name} preview in ${palette.name}`}
-        className="mx-auto w-full max-w-[calc(38vh*1000/1414)] md:col-span-5 md:max-w-[calc(70vh*1000/1414)]"
+        className="w-full max-w-[calc(38vh*1000/1414)] md:col-span-5 md:max-w-[calc(70vh*1000/1414)]"
       />
 
       <div className="flex flex-col gap-6 md:col-span-7">
@@ -70,7 +70,7 @@ export function ProductOptions({ product }: { product: Product }) {
                 <label key={id} className="flex items-center gap-2 font-normal">
                   <Radio.Root
                     value={id}
-                    className="group relative flex size-7 items-center justify-center rounded-full border border-border outline-none ring-primary ring-offset-2 ring-offset-background data-checked:ring-2 focus-visible:ring-2"
+                    className="group relative flex size-7 items-center justify-center rounded-full border border-input outline-none ring-primary ring-offset-2 ring-offset-background after:absolute after:-inset-2 data-checked:ring-2 focus-visible:ring-2"
                     style={{ backgroundColor: p.background }}
                   >
                     <span
@@ -128,7 +128,9 @@ export function ProductOptions({ product }: { product: Product }) {
           increaseLabel="Increase quantity"
         />
 
-        <Button onClick={handleAdd}>Add to cart</Button>
+        <Button size="lg" className="w-full md:max-w-56" onClick={handleAdd}>
+          Add to cart
+        </Button>
       </div>
     </div>
   )

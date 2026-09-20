@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('browse, filter, buy a poster, and confirm the order', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Browse the shop' }).click()
+  await page.getByRole('link', { name: 'Browse the shop' }).click()
   await expect(page).toHaveURL(/\/shop\/$/)
 
   const count = page.locator('p[aria-live="polite"]')
@@ -41,7 +41,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await expect(cart.getByText(/^A2/)).toBeVisible()
   await expect(cart.getByRole('textbox', { name: 'Quantity of Hush, A2' })).toHaveValue('3')
 
-  await cart.getByRole('button', { name: 'Checkout' }).click()
+  await cart.getByRole('link', { name: 'Checkout' }).click()
   await expect(page).toHaveURL(/\/checkout\/$/)
   await expect(cart).toBeHidden()
 

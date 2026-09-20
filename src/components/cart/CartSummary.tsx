@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { cn } from 'cn'
 import { shippingCents, subtotalCents, totalCents } from '@/cart/totals'
 import type { DeliveryId, PricedLine } from '@/cart/types'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { formatCents } from '@/lib/money'
 
 const DELIVERY_LABELS: Record<DeliveryId, string> = {
@@ -30,7 +31,7 @@ export function CartSummary({
       </div>
       <div className="flex justify-between text-muted-foreground">
         {estimate ? (
-          <span>Shipping from $9, free over $150, chosen at checkout</span>
+          <span>Shipping from $9, free from $150, chosen at checkout</span>
         ) : (
           <>
             <span>{DELIVERY_LABELS[delivery]}</span>
@@ -44,7 +45,11 @@ export function CartSummary({
       </div>
       <p className="text-xs text-muted-foreground">Free standard shipping from $150.</p>
       <p className="text-xs text-muted-foreground">Orders are not real and nothing is charged.</p>
-      {estimate ? <Button nativeButton={false} render={<Link href="/checkout/">Checkout</Link>} /> : null}
+      {estimate ? (
+        <Link href="/checkout/" className={cn(buttonVariants())}>
+          Checkout
+        </Link>
+      ) : null}
     </div>
   )
 }

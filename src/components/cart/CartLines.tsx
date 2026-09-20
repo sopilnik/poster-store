@@ -40,11 +40,12 @@ export function CartLines({
               className="gap-2"
             />
           </div>
-          <div className="flex flex-col items-end justify-between">
+          <div className="flex flex-col items-end gap-2">
             <p className="font-medium">{formatCents(line.lineCents)}</p>
             <Button
               variant="ghost"
               size="icon-sm"
+              className="relative after:absolute after:-inset-2"
               aria-label={`Remove ${line.product.name}`}
               onClick={() => dispatch({ type: 'remove', sku: line.sku })}
             >
