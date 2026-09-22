@@ -89,10 +89,30 @@ async function uploadFile(env, file) {
   throw lastError
 }
 
+async function fetchWithRetry(url, options, describe) {
+  let lastError
+  for (let attempt = 1; attempt <= UPLOAD_RETRIES; attempt += 1) {
+    let response
+    try {
+      response = await fetch(url, options)
+    } catch (error) {
+      lastError = error
+      if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
+      continue
+    }
+    if (response.ok) return response
+    if (response.status < 500) {
+      throw new Error(`${describe} failed (${response.status})`)
+    }
+    lastError = new Error(`${describe} failed (${response.status})`)
+    if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
+  }
+  throw lastError
+}
+
 async function listRemote(env, dir = '') {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${dir ? `${dir}/` : ''}`
-  const response = await fetch(url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } })
-  if (!response.ok) throw new Error(`list failed (${response.status}) for ${dir || '/'}`)
+  const response = await fetchWithRetry(url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`)
   const listing = await response.json()
 
   const entries = []
@@ -120,8 +140,7 @@ function staleEntries(remoteEntries, localPaths) {
 
 async function deleteRemote(env, remote, isDirectory) {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${isDirectory ? `${remote}/` : remote}`
-  const response = await fetch(url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } })
-  if (!response.ok) throw new Error(`delete failed (${response.status}) for ${remote}`)
+  await fetchWithRetry(url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `delete for ${remote}`)
 }
 
 async function removeStale(env, remoteEntries, localPaths) {
