@@ -13,6 +13,10 @@ import { clearOrder, loadOrder, saveOrder } from '@/checkout/storage'
 import { CHECKOUT_API } from '@/lib/site'
 import { CheckoutForm } from './CheckoutForm'
 
+function isStripeUrl(target: URL): boolean {
+  return target.protocol === 'https:' && (target.hostname === 'stripe.com' || target.hostname.endsWith('.stripe.com'))
+}
+
 export function CheckoutPageClient() {
   const { items, hydrated, dispatch } = useCart()
   const router = useRouter()
@@ -84,15 +88,12 @@ export function CheckoutPageClient() {
         if (!response.ok) throw new Error('checkout session request failed')
         const data: unknown = await response.json()
         const url = data && typeof data === 'object' ? (data as Record<string, unknown>).url : undefined
-        if (typeof url !== 'string') {
-          throw new Error('checkout session response did not include a Stripe url')
-        }
-        const target = new URL(url)
-        if (target.protocol !== 'https:' || !(target.hostname === 'stripe.com' || target.hostname.endsWith('.stripe.com'))) {
+        const target = typeof url === 'string' ? new URL(url) : null
+        if (!target || !isStripeUrl(target)) {
           throw new Error('checkout session response did not include a Stripe url')
         }
         dispatch({ type: 'clear' })
-        window.location.assign(url)
+        window.location.assign(target.href)
       } catch {
         clearOrder()
         toast('Card payment is unavailable right now. You can place a demo order instead.')
