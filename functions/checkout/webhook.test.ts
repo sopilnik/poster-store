@@ -2,6 +2,10 @@
 import type { StripeEventLike, StripeLike } from './session'
 import { dispatchEvent, verifyWebhook } from './webhook'
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 function fakeStripe(constructEventAsync: StripeLike['webhooks']['constructEventAsync']): StripeLike {
   return {
     checkout: {
@@ -42,7 +46,6 @@ test('dispatchEvent logs the session id, order id and payment status for a compl
   }
   dispatchEvent(event)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
-  logSpy.mockRestore()
 })
 
 test('dispatchEvent is a no-op for other event types', () => {
@@ -54,5 +57,4 @@ test('dispatchEvent is a no-op for other event types', () => {
   }
   dispatchEvent(event)
   expect(logSpy).not.toHaveBeenCalled()
-  logSpy.mockRestore()
 })

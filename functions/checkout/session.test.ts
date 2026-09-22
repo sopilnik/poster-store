@@ -4,6 +4,10 @@ import type { Env } from './env'
 import { buildLineItems, createSession, getSession, idempotencyKey } from './session'
 import type { StripeCreatedSessionLike, StripeLike, StripeRetrievedSessionLike } from './session'
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 const ENV: Env = {
   STRIPE_SECRET_KEY: 'test-secret',
   STRIPE_WEBHOOK_SECRET: 'test-webhook-secret',
@@ -270,7 +274,6 @@ test('getSession returns 502 and logs when the retrieve call fails with a Stripe
   const result = await getSession(stripe, 'cs_test_1')
   expect(result).toEqual({ ok: false, status: 502, error: 'Session lookup failed' })
   expect(errorSpy).toHaveBeenCalledOnce()
-  errorSpy.mockRestore()
 })
 
 test('getSession returns 502 and logs when the retrieve call throws a network error', async () => {
@@ -290,5 +293,4 @@ test('getSession returns 502 and logs when the retrieve call throws a network er
   expect(errorSpy).toHaveBeenCalledOnce()
   const loggedArgs = errorSpy.mock.calls[0]
   expect(loggedArgs?.some(arg => typeof arg === 'string' && arg.includes('socket hang up'))).toBe(true)
-  errorSpy.mockRestore()
 })

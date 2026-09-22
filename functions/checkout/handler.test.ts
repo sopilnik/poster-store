@@ -3,6 +3,10 @@ import type { Env } from './env'
 import { handle } from './handler'
 import type { StripeCreatedSessionLike, StripeEventLike, StripeLike, StripeRetrievedSessionLike } from './session'
 
+afterEach(() => {
+  vi.restoreAllMocks()
+})
+
 const ENV: Env = {
   STRIPE_SECRET_KEY: 'test-secret',
   STRIPE_WEBHOOK_SECRET: 'test-webhook-secret',
@@ -201,7 +205,6 @@ test('webhook POST with a body under the 64 KB cap returns 200', async () => {
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
   expect(response.status).toBe(200)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
-  logSpy.mockRestore()
 })
 
 test('webhook POST with a body over the 64 KB cap returns 413', async () => {
@@ -359,7 +362,6 @@ test('webhook POST with a verified checkout.session.completed event returns 200 
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
   expect(response.status).toBe(200)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
-  logSpy.mockRestore()
 })
 
 test('webhook POST with an unhandled event type still returns 200', async () => {
