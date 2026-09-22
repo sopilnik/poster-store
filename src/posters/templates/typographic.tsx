@@ -1,9 +1,5 @@
 import type { TypographicParams, Palette, RootProps } from '../types'
-
-const W = 1000
-const H = 1414
-const M = 80
-const r = (n: number) => Math.round(n * 10) / 10
+import { W, H, M, r, PosterRoot } from '../canvas'
 
 export function Typographic({
   params,
@@ -22,8 +18,7 @@ export function Typographic({
   const ruleWidth = r(W - 2 * M)
   const labelY = H - M
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414" width="1000" height="1414" role="img" {...rootProps}>
-      <rect x="0" y="0" width="1000" height="1414" fill={palette.background} />
+    <PosterRoot background={palette.background} rootProps={rootProps}>
       <text
         x={x}
         y={textY}
@@ -40,6 +35,6 @@ export function Typographic({
       <text x={M} y={labelY} textAnchor="start" fill={palette.ink} fontFamily="Space Grotesk" fontSize="28" fontWeight={400}>
         {text.toLowerCase()}
       </text>
-    </svg>
+    </PosterRoot>
   )
 }

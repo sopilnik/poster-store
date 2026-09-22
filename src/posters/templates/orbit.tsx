@@ -1,10 +1,7 @@
 import type { ReactElement } from 'react'
 import type { OrbitParams, Palette, RootProps } from '../types'
 import { mulberry32 } from '../prng'
-
-const W = 1000
-const H = 1414
-const r = (n: number) => Math.round(n * 10) / 10
+import { W, H, r, PosterRoot } from '../canvas'
 
 export function Orbit({
   params,
@@ -40,9 +37,8 @@ export function Orbit({
     ringNumber++
   }
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414" width="1000" height="1414" role="img" {...rootProps}>
-      <rect x="0" y="0" width="1000" height="1414" fill={palette.background} />
+    <PosterRoot background={palette.background} rootProps={rootProps}>
       {circles}
-    </svg>
+    </PosterRoot>
   )
 }

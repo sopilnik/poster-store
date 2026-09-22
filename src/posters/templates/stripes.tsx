@@ -1,9 +1,6 @@
 import type { ReactElement } from 'react'
 import type { StripesParams, Palette, RootProps } from '../types'
-
-const W = 1000
-const H = 1414
-const r = (n: number) => Math.round(n * 10) / 10
+import { W, H, r, PosterRoot } from '../canvas'
 
 export function Stripes({
   params,
@@ -54,8 +51,7 @@ export function Stripes({
   const numeralX = W / 2
   const numeralY = r(H / 2 + numeralSize * 0.35)
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414" width="1000" height="1414" role="img" {...rootProps}>
-      <rect x="0" y="0" width="1000" height="1414" fill={palette.background} />
+    <PosterRoot background={palette.background} rootProps={rootProps}>
       {angle === 30 ? <g transform="rotate(30 500 707)">{bands}</g> : bands}
       <text
         x={numeralX}
@@ -70,6 +66,6 @@ export function Stripes({
       >
         {numeral}
       </text>
-    </svg>
+    </PosterRoot>
   )
 }

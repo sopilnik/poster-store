@@ -1,11 +1,7 @@
 import type { ReactElement } from 'react'
 import type { BlocksParams, Palette, RootProps } from '../types'
 import { mulberry32 } from '../prng'
-
-const W = 1000
-const H = 1414
-const M = 80
-const r = (n: number) => Math.round(n * 10) / 10
+import { W, H, M, r, PosterRoot } from '../canvas'
 
 // A quarter circle pinned at (cx, cy): the arc runs from the point directly left of the pivot
 // to the point directly above it, then closes back through the pivot itself.
@@ -68,9 +64,8 @@ export function Blocks({
   }
 
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414" width="1000" height="1414" role="img" {...rootProps}>
-      <rect x="0" y="0" width="1000" height="1414" fill={palette.background} />
+    <PosterRoot background={palette.background} rootProps={rootProps}>
       {shapes}
-    </svg>
+    </PosterRoot>
   )
 }
