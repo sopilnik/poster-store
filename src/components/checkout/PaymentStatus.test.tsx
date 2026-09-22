@@ -184,10 +184,11 @@ test('does not refetch when onPaid changes identity across re-renders, and calls
 
   const firstOnPaid = vi.fn()
   const secondOnPaid = vi.fn()
+  const thirdOnPaid = vi.fn()
   const { rerender } = render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={firstOnPaid} />)
 
   rerender(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={secondOnPaid} />)
-  rerender(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={secondOnPaid} />)
+  rerender(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={thirdOnPaid} />)
 
   await waitFor(() => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
@@ -199,5 +200,6 @@ test('does not refetch when onPaid changes identity across re-renders, and calls
 
   expect(await screen.findByText('Paid (test mode) · $12.00')).toBeInTheDocument()
   expect(firstOnPaid).not.toHaveBeenCalled()
-  expect(secondOnPaid).toHaveBeenCalledTimes(1)
+  expect(secondOnPaid).not.toHaveBeenCalled()
+  expect(thirdOnPaid).toHaveBeenCalledTimes(1)
 })
