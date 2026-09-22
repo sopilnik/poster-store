@@ -16,7 +16,7 @@ export const metadata = pageMetadata({
 })
 
 const HERO_PRODUCT = productBySlug('red-corner')!
-const HERO_PALETTE = PALETTES[HERO_PRODUCT.palettes[0] ?? 'paper']
+const HERO_PALETTE = PALETTES[HERO_PRODUCT.palettes[0]]
 const FEATURED = PRODUCTS.filter(p => p.featured)
 
 const STEPS = [

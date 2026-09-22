@@ -7,7 +7,7 @@ import { RadioGroup } from '@base-ui/react/radio-group'
 import { Radio } from '@base-ui/react/radio'
 import { useCart } from '@/cart/CartProvider'
 import { PALETTES } from '@/catalog/palettes'
-import { SIZES } from '@/catalog/sizes'
+import { SIZES, sizeById } from '@/catalog/sizes'
 import { variantPriceCents } from '@/catalog/pricing'
 import { formatCents } from '@/lib/money'
 import type { Product, SizeId } from '@/catalog/types'
@@ -19,12 +19,12 @@ import { QuantityStepper } from '@/components/QuantityStepper'
 
 export function ProductOptions({ product }: { product: Product }) {
   const { dispatch, open } = useCart()
-  const [paletteId, setPaletteId] = useState<PaletteId>(product.palettes[0] ?? 'paper')
+  const [paletteId, setPaletteId] = useState<PaletteId>(product.palettes[0])
   const [sizeId, setSizeId] = useState<SizeId>('a3')
   const [qty, setQty] = useState(1)
 
   const palette = PALETTES[paletteId]
-  const size = SIZES.find(s => s.id === sizeId) ?? SIZES[0]!
+  const size = sizeById(sizeId)
   const lineCents = variantPriceCents(product, sizeId) * qty
 
   const sizeItems = SIZES.map(s => ({

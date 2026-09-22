@@ -4,7 +4,7 @@ import { PALETTES } from '@/catalog/palettes'
 const allowedAttrs = /\s(class|style)=|var\(/
 const hex = /#[0-9a-fA-F]{3,8}\b/g
 test.each(PRODUCTS.map(p => [p.slug, p] as const))('%s renders a standalone, deterministic, palette-only SVG', (_, p) => {
-  const palette = PALETTES[p.palettes[0]!]
+  const palette = PALETTES[p.palettes[0]]
   const a = renderPosterMarkup(p, palette), b = renderPosterMarkup(p, palette)
   expect(a).toBe(b)
   expect(a.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414"')).toBe(true)

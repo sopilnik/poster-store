@@ -26,7 +26,7 @@ function write(file: string, png: Buffer, max: number) {
 }
 
 for (const p of PRODUCTS) {
-  const palette = PALETTES[p.palettes[0]!]
+  const palette = PALETTES[p.palettes[0]]
   write(path.join(posters, `${p.slug}.png`), rasterize(renderPosterMarkup(p, palette), { width: CARD_W }), CARD_MAX)
   const card = ogCardMarkup({
     title: p.name,
@@ -43,7 +43,7 @@ for (const c of COLLECTIONS) {
   write(
     path.join(og, `${c.slug}.png`),
     rasterize(
-      ogCardMarkup({ title: c.name, subtitle: 'Collection', priceLabel: '', poster: rep, palette: PALETTES[rep.palettes[0]!] }),
+      ogCardMarkup({ title: c.name, subtitle: 'Collection', priceLabel: '', poster: rep, palette: PALETTES[rep.palettes[0]] }),
       { width: 1200 },
     ),
     OG_MAX,
@@ -60,7 +60,7 @@ write(
       subtitle: 'Posters made of geometry and type',
       priceLabel: '',
       poster: featuredProduct,
-      palette: PALETTES[featuredProduct.palettes[0]!],
+      palette: PALETTES[featuredProduct.palettes[0]],
     }),
     { width: 1200 },
   ),
