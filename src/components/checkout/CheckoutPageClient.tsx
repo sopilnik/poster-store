@@ -6,6 +6,7 @@ import { useEffect, useReducer } from 'react'
 import { toast } from 'sonner'
 import { useCart } from '@/cart/CartProvider'
 import { priceLines } from '@/cart/totals'
+import { MAX_CART_LINES } from '@/checkout/limits'
 import { buildOrder } from '@/checkout/order'
 import type { CheckoutInput } from '@/checkout/schema'
 import { clearOrder, loadOrder, saveOrder } from '@/checkout/storage'
@@ -63,6 +64,11 @@ export function CheckoutPageClient() {
     const order = buildOrder(input, lines, new Date().toISOString())
 
     if (input.payment === 'stripe') {
+      if (order.items.length > MAX_CART_LINES) {
+        toast(`Card payment takes up to ${MAX_CART_LINES} different items. Remove some, or place a demo order.`)
+        return
+      }
+
       saveOrder({ ...order, payment: 'stripe', paymentStatus: 'pending' })
       try {
         const response = await fetch(`${CHECKOUT_API}/checkout/session`, {

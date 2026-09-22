@@ -4,6 +4,8 @@ import { toast } from 'sonner'
 import { CartContext } from '@/cart/CartProvider'
 import { priceLines, shippingCents, subtotalCents } from '@/cart/totals'
 import type { CartAction, CartContextValue, CartItem } from '@/cart/types'
+import { PRODUCTS } from '@/catalog/products'
+import { MAX_CART_LINES } from '@/checkout/limits'
 import type { Order } from '@/checkout/order'
 import { loadOrder, saveOrder } from '@/checkout/storage'
 import { CheckoutPageClient } from './CheckoutPageClient'
@@ -17,6 +19,17 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
 const CART_ITEMS: CartItem[] = [
   { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 },
 ]
+
+function manyCartItems(count: number): CartItem[] {
+  const items: CartItem[] = []
+  for (const product of PRODUCTS) {
+    for (const paletteId of product.palettes) {
+      if (items.length >= count) return items
+      items.push({ sku: `${product.slug}-a3-${paletteId}`, productSlug: product.slug, sizeId: 'a3', paletteId, qty: 1 })
+    }
+  }
+  throw new Error(`the catalog does not have ${count} distinct variants`)
+}
 
 function contextValue(overrides: Partial<CartContextValue> = {}): CartContextValue {
   return {
@@ -66,6 +79,35 @@ test('a rejected checkout session request keeps the form and shows the toast', a
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(pushMock).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: /pay with card/i })).toBeInTheDocument()
+})
+
+test('a cart over the line limit shows the card limit toast instead of starting checkout', async () => {
+  const fetchSpy = vi.fn()
+  vi.stubGlobal('fetch', fetchSpy)
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ items: manyCartItems(MAX_CART_LINES + 1), dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
+  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
+  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
+  await userEvent.type(screen.getByLabelText(/city/i), 'London')
+  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
+
+  await waitFor(() => {
+    expect(toast).toHaveBeenCalledWith(
+      `Card payment takes up to ${MAX_CART_LINES} different items. Remove some, or place a demo order.`
+    )
+  })
+  expect(fetchSpy).not.toHaveBeenCalled()
+  expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
+  expect(loadOrder()).toBeNull()
 })
 
 test('a checkout session response without a valid https url keeps the cart and does not navigate', async () => {
