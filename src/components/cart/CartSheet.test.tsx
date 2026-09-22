@@ -35,6 +35,14 @@ test('closes the sheet when the route changes', () => {
   )
   expect(close.mock.calls.length).toBe(1)
 
+  rerender(
+    <CartContext.Provider value={contextValue(close)}>
+      <CartSheet />
+    </CartContext.Provider>
+  )
+
+  expect(close.mock.calls.length).toBe(1)
+
   pathname = '/checkout/'
   rerender(
     <CartContext.Provider value={contextValue(close)}>
