@@ -3,7 +3,8 @@ import { checkoutSessionSchema } from './schema'
 import { createSession, getSession, type StripeLike } from './session'
 import { dispatchEvent, verifyWebhook } from './webhook'
 
-const MAX_BODY_BYTES = 8 * 1024
+const MAX_SESSION_BODY_BYTES = 8 * 1024
+const MAX_WEBHOOK_BODY_BYTES = 64 * 1024
 
 function jsonResponse(status: number, body: unknown, headers: HeadersInit): Response {
   return new Response(JSON.stringify(body), {
@@ -25,15 +26,39 @@ function corsHeaders(request: Request, env: Env): HeadersInit {
 
 type ReadBodyResult = { ok: true; text: string } | { ok: false }
 
-async function readBody(request: Request): Promise<ReadBodyResult> {
+async function readBody(request: Request, maxBytes: number): Promise<ReadBodyResult> {
   const contentLength = request.headers.get('content-length')
   if (contentLength !== null) {
     const length = Number.parseInt(contentLength, 10)
-    if (Number.isNaN(length) || length < 0 || length > MAX_BODY_BYTES) return { ok: false }
+    if (Number.isNaN(length) || length < 0 || length > maxBytes) return { ok: false }
   }
-  const text = await request.text()
-  if (new TextEncoder().encode(text).length > MAX_BODY_BYTES) return { ok: false }
+  if (request.body === null) return { ok: true, text: '' }
+
+  const reader = request.body.getReader()
+  const chunks: Uint8Array[] = []
+  let total = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    chunks.push(value)
+    total += value.byteLength
+    if (total > maxBytes) {
+      await reader.cancel()
+      return { ok: false }
+    }
+  }
+  const text = new TextDecoder().decode(concatChunks(chunks, total))
   return { ok: true, text }
+}
+
+function concatChunks(chunks: Uint8Array[], total: number): Uint8Array {
+  const combined = new Uint8Array(total)
+  let offset = 0
+  for (const chunk of chunks) {
+    combined.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return combined
 }
 
 function isAllowedOrigin(request: Request, env: Env): boolean {
@@ -56,7 +81,7 @@ async function handleCreateSession(
     return jsonResponse(403, { error: 'Origin not allowed' }, headers)
   }
 
-  const body = await readBody(request)
+  const body = await readBody(request, MAX_SESSION_BODY_BYTES)
   if (!body.ok) return jsonResponse(413, { error: 'Request body is too large' }, headers)
 
   let json: unknown
@@ -95,7 +120,7 @@ async function handleWebhook(
   headers: HeadersInit
 ): Promise<Response> {
   const signature = request.headers.get('stripe-signature')
-  const body = await readBody(request)
+  const body = await readBody(request, MAX_WEBHOOK_BODY_BYTES)
   if (!body.ok) return jsonResponse(413, { error: 'Request body is too large' }, headers)
   if (!signature) return jsonResponse(400, { error: 'Missing signature' }, headers)
 

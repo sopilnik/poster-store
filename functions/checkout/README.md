@@ -8,10 +8,12 @@ need only a new entry file next to `worker.ts`.
 
 - `POST /checkout/session` re-prices the cart from the store's own catalog (never trusts an amount
   sent by the browser), builds a Stripe Checkout session with an idempotency key, and returns its url.
+  The request body is capped at 8 KB.
 - `GET /checkout/session?id=` looks up a session and returns only its status and total, no address or
   email.
-- `POST /stripe/webhook` verifies the `stripe-signature` header and logs a completed checkout. There is
-  no database behind this demo, so the log line is where a real integration would start fulfilment.
+- `POST /stripe/webhook` verifies the `stripe-signature` header and logs a completed checkout. The
+  request body is capped at 64 KB. There is no database behind this demo, so the log line is where a
+  real integration would start fulfilment.
 
 Prices, shipping and the idempotency key are computed on the server from the same catalog modules the
 storefront pages use, so a tampered request cannot change what Stripe charges.
@@ -56,5 +58,11 @@ gated on the `main` branch and on the four secrets (`STRIPE_SECRET_KEY`, `STRIPE
 
 This is a demo: one event is logged and nothing is stored. A real shop behind this function would add
 an order database written from the webhook (not from the browser redirect, which can be skipped or
-replayed), receipt emails, refund handling, live keys behind their own review process, and rate
-limiting in front of both routes.
+replayed), receipt emails, refund handling, and live keys behind their own review process.
+
+## Abuse limits
+
+Request bodies are capped in code (8 KB on `/checkout/session`, 64 KB on `/stripe/webhook`, see "What
+it does" above). Request rate is limited by one Cloudflare rate-limiting rule on `/checkout/session`,
+set in the dashboard — an owner step; the exact numbers depend on the plan's rule form. `/stripe/webhook`
+is never rate-limited, because Stripe retries from many addresses.

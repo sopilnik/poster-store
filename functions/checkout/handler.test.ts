@@ -48,6 +48,21 @@ function makeStripeFactory(options: FakeStripeOptions = {}): (key: string) => St
   })
 }
 
+function infiniteBodyRequest(url: string, extraHeaders: Record<string, string> = {}): Request {
+  const chunk = new Uint8Array(1024).fill(97)
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      controller.enqueue(chunk)
+    },
+  })
+  return new Request(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...extraHeaders },
+    body: stream,
+    duplex: 'half',
+  } as RequestInit)
+}
+
 test('OPTIONS on the session route returns 204 with CORS headers for a cross-origin function', async () => {
   const request = new Request('https://api.example.test/checkout/session', { method: 'OPTIONS' })
   const response = await handle(request, ENV, makeStripeFactory())
@@ -156,6 +171,29 @@ test('POST with a body over 8 KB returns 413, detected by the actual body size',
   })
   const response = await handle(request, ENV, makeStripeFactory())
   expect(response.status).toBe(413)
+})
+
+test('POST with an endless stream body on the session route returns 413', async () => {
+  const request = infiniteBodyRequest('https://api.example.test/checkout/session')
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
+})
+
+test('POST with an endless stream body on the webhook route returns 413', async () => {
+  const request = infiniteBodyRequest('https://api.example.test/stripe/webhook', { 'stripe-signature': 'good-sig' })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
+})
+
+test('webhook POST with a body under the 64 KB cap returns 200', async () => {
+  const event: StripeEventLike = { id: 'evt_3', type: 'payment_intent.succeeded', data: { object: { id: 'pi_3' } } }
+  const request = new Request('https://api.example.test/stripe/webhook', {
+    method: 'POST',
+    headers: { 'stripe-signature': 'good-sig' },
+    body: JSON.stringify({ padding: 'a'.repeat(16 * 1024) }),
+  })
+  const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
+  expect(response.status).toBe(200)
 })
 
 test('POST with a valid body returns 502 with the error shape and CORS header when create throws', async () => {
