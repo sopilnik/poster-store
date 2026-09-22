@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import { absoluteUrl, BRAND } from './site'
+import { BRAND } from './site'
+import { absoluteUrl } from './siteServer'
 
 export function pageMetadata({
   title,

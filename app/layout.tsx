@@ -6,7 +6,8 @@ import { ThemeProvider } from '@/components/site/ThemeProvider'
 import { Header } from '@/components/site/Header'
 import { Footer } from '@/components/site/Footer'
 import { Toaster } from '@/components/ui/sonner'
-import { BRAND, SITE_URL } from '@/lib/site'
+import { BRAND } from '@/lib/site'
+import { SITE_URL } from '@/lib/siteServer'
 import './globals.css'
 
 const inter = localFont({

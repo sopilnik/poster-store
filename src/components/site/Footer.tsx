@@ -1,4 +1,5 @@
-import { AUTHOR_NAME, AUTHOR_URL, BRAND, REPO_URL } from '@/lib/site'
+import { AUTHOR_NAME, BRAND, REPO_URL } from '@/lib/site'
+import { AUTHOR_URL } from '@/lib/siteServer'
 
 export function Footer() {
   return (

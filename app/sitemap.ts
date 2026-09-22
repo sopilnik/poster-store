@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { COLLECTIONS } from '@/catalog/collections'
 import { PRODUCTS } from '@/catalog/products'
-import { absoluteUrl } from '@/lib/site'
+import { absoluteUrl } from '@/lib/siteServer'
 
 export const dynamic = 'force-static'
 

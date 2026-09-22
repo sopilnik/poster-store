@@ -1,7 +1,7 @@
 import type { Product } from '../catalog/types'
 import { SIZES } from '../catalog/sizes'
 import { variantPriceCents } from '../catalog/pricing'
-import { absoluteUrl } from './site'
+import { absoluteUrl } from './siteServer'
 
 const formatUsd = (cents: number): string => (cents / 100).toFixed(2)
 

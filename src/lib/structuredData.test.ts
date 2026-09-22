@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { productJsonLd } from './structuredData'
 import { productBySlug } from '../catalog/products'
-import { absoluteUrl } from './site'
+import { absoluteUrl } from './siteServer'
 
 test('productJsonLd builds a Product node with an AggregateOffer spanning the sizes', () => {
   const product = productBySlug('quiet-hours')
