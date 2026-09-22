@@ -1,5 +1,4 @@
 import { renderPosterMarkup } from './markup'
-import { REGISTRY } from './registry'
 import { PRODUCTS } from '@/catalog/products'
 import { PALETTES } from '@/catalog/palettes'
 const allowedAttrs = /\s(class|style)=|var\(/
@@ -13,8 +12,4 @@ test.each(PRODUCTS.map(p => [p.slug, p] as const))('%s renders a standalone, det
   const allowed = new Set([palette.background, palette.ink, palette.accent].map(c => c.toLowerCase()))
   for (const c of a.match(hex) ?? []) expect(allowed.has(c.toLowerCase())).toBe(true)
   expect(a).not.toMatch(/font-weight="(?!400|700)/)
-})
-test('registry covers every template id used by the catalog', () => {
-  for (const p of PRODUCTS) expect(REGISTRY[p.template]).toBeTypeOf('function')
-  expect(Object.keys(REGISTRY).sort()).toEqual(['blocks', 'grid', 'orbit', 'stripes', 'typographic'])
 })

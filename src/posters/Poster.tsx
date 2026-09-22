@@ -25,5 +25,9 @@ export function Poster({
       return <Orbit params={spec.params} palette={palette} rootProps={rootProps} />
     case 'blocks':
       return <Blocks params={spec.params} palette={palette} rootProps={rootProps} />
+    default: {
+      const exhaustive: never = spec
+      throw new Error(`Unknown template: ${String((exhaustive as PosterSpec).template)}`)
+    }
   }
 }
