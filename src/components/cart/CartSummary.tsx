@@ -4,7 +4,8 @@ import { shippingCents, subtotalCents, totalCents } from '@/cart/totals'
 import type { DeliveryId, PricedLine } from '@/cart/types'
 import { DELIVERY_LABELS } from '@/cart/delivery'
 import { buttonVariants } from '@/components/ui/button'
-import { formatCents } from '@/lib/money'
+import { FREE_SHIPPING_FROM_CENTS, SHIPPING } from '@/catalog/sizes'
+import { formatCents, formatDollars } from '@/lib/money'
 
 export function CartSummary({
   lines,
@@ -27,7 +28,7 @@ export function CartSummary({
       </div>
       <div className="flex justify-between text-muted-foreground">
         {estimate ? (
-          <span>Shipping from $9, free from $150, chosen at checkout</span>
+          <span>{`Shipping from ${formatDollars(SHIPPING.standard)}, free from ${formatDollars(FREE_SHIPPING_FROM_CENTS)}, chosen at checkout`}</span>
         ) : (
           <>
             <span>{DELIVERY_LABELS[delivery]}</span>
@@ -39,7 +40,7 @@ export function CartSummary({
         <span>{estimate ? 'Estimated total' : 'Total'}</span>
         <span>{formatCents(total)}</span>
       </div>
-      <p className="text-xs text-muted-foreground">Free standard shipping from $150.</p>
+      <p className="text-xs text-muted-foreground">{`Free standard shipping from ${formatDollars(FREE_SHIPPING_FROM_CENTS)}.`}</p>
       <p className="text-xs text-muted-foreground">Orders are not real and nothing is charged.</p>
       {estimate ? (
         <Link href="/checkout/" className={cn(buttonVariants())}>

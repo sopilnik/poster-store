@@ -2,11 +2,11 @@
 
 import { useController, useForm, useWatch, type Control } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SHIPPING } from '@/catalog/sizes'
+import { FREE_SHIPPING_FROM_CENTS, SHIPPING } from '@/catalog/sizes'
 import { subtotalCents, totalCents } from '@/cart/totals'
 import type { PricedLine } from '@/cart/types'
 import { checkoutSchema, COUNTRIES, type CheckoutInput } from '@/checkout/schema'
-import { formatCents } from '@/lib/money'
+import { formatCents, formatDollars } from '@/lib/money'
 import { hasCheckoutApi } from '@/lib/site'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -107,7 +107,7 @@ function DeliveryField({ control }: { control: Control<CheckoutInput> }) {
       >
         <Label className="flex items-center gap-2 font-normal">
           <RadioGroupItem value="standard" />
-          Standard · {formatCents(SHIPPING.standard)}, free from $150
+          {`Standard · ${formatCents(SHIPPING.standard)}, free from ${formatDollars(FREE_SHIPPING_FROM_CENTS)}`}
         </Label>
         <Label className="flex items-center gap-2 font-normal">
           <RadioGroupItem value="express" />

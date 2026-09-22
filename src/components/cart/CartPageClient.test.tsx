@@ -3,7 +3,8 @@ import { CartContext } from '@/cart/CartProvider'
 import type { CartAction, CartContextValue, CartItem } from '@/cart/types'
 import { productBySlug } from '@/catalog/products'
 import { variantPriceCents } from '@/catalog/pricing'
-import { formatCents } from '@/lib/money'
+import { FREE_SHIPPING_FROM_CENTS, SHIPPING } from '@/catalog/sizes'
+import { formatCents, formatDollars } from '@/lib/money'
 import { CartPageClient } from './CartPageClient'
 
 const CART_ITEMS: CartItem[] = [
@@ -46,4 +47,16 @@ test('shows the cart lines once hydrated', () => {
   const product = productBySlug('quiet-hours')!
   const lineCents = variantPriceCents(product, 'a2') * 1
   expect(screen.getByText(formatCents(lineCents), { selector: 'p' })).toBeInTheDocument()
+})
+
+test('renders the shipping estimate from the shipping constants', () => {
+  render(
+    <CartContext.Provider value={contextValue()}>
+      <CartPageClient />
+    </CartContext.Provider>
+  )
+
+  const estimate = screen.getByText(/chosen at checkout/)
+  expect(estimate).toHaveTextContent(formatDollars(SHIPPING.standard))
+  expect(estimate).toHaveTextContent(formatDollars(FREE_SHIPPING_FROM_CENTS))
 })

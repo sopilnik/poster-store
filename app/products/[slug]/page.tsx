@@ -5,7 +5,8 @@ import { ProductGrid } from '@/components/product/ProductGrid'
 import { ProductOptions } from '@/components/product/ProductOptions'
 import { collectionBySlug } from '@/catalog/collections'
 import { PRODUCTS, productBySlug } from '@/catalog/products'
-import { SIZES } from '@/catalog/sizes'
+import { FREE_SHIPPING_FROM_CENTS, SIZES } from '@/catalog/sizes'
+import { formatDollars } from '@/lib/money'
 import { pageMetadata } from '@/lib/metadata'
 
 export function generateStaticParams() {
@@ -56,7 +57,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>Paper: 200 gsm matte</li>
           <li>Sizes: {SIZES.map(s => `${s.label} (${s.cm})`).join(', ')}</li>
-          <li>Free standard shipping from $150.</li>
+          <li>{`Free standard shipping from ${formatDollars(FREE_SHIPPING_FROM_CENTS)}.`}</li>
         </ul>
       </div>
 
