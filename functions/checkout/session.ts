@@ -74,7 +74,7 @@ export type StripeLike = {
 
 export type LineItemsResult =
   | { ok: true; lineItems: CheckoutLineItem[]; shippingOptions: CheckoutShippingOption[]; totalCents: number }
-  | { ok: false; sku: string }
+  | { ok: false }
 
 const DELIVERY_LABELS: Record<DeliveryId, string> = {
   standard: 'Standard shipping',
@@ -93,7 +93,7 @@ export function buildLineItems(
   for (const item of items) {
     const variant = parseSku(item.sku)
     const product = variant ? productBySlug(variant.productSlug) : undefined
-    if (!variant || !product) return { ok: false, sku: item.sku }
+    if (!variant || !product) return { ok: false }
 
     const size = sizeById(variant.sizeId)
     const palette = PALETTES[variant.paletteId]

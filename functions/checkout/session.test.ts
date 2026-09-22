@@ -87,7 +87,7 @@ test('buildLineItems returns the express amount regardless of subtotal', () => {
 
 test('buildLineItems fails on an unknown sku', () => {
   const result = buildLineItems([{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], 'standard', ENV.SITE_URL)
-  expect(result).toEqual({ ok: false, sku: 'not-a-real-sku-a3-ink' })
+  expect(result).toEqual({ ok: false })
 })
 
 test('buildLineItems includes no product image over http', () => {
