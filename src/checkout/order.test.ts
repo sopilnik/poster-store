@@ -5,8 +5,12 @@ import type { CheckoutInput } from './schema'
 
 test('makeOrderId returns FL- plus six characters from a fixed byte source', () => {
   const id = makeOrderId(() => new Uint8Array([0, 1, 2, 3, 4, 5]))
-  expect(id).toMatch(/^FL-[A-Z0-9]{6}$/)
-  expect(id).toHaveLength(9)
+  expect(id).toBe('FL-ABCDEF')
+})
+
+test('makeOrderId wraps bytes past the alphabet length', () => {
+  const id = makeOrderId(() => new Uint8Array([35, 36, 71, 72, 255, 0]))
+  expect(id).toBe('FL-9A9ADA')
 })
 
 const INPUT: CheckoutInput = {

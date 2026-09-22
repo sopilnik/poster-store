@@ -3,6 +3,7 @@ test('formats whole and fractional dollars', () => {
   expect(formatCents(2900)).toBe('$29.00')
   expect(formatCents(4505)).toBe('$45.05')
   expect(formatCents(0)).toBe('$0.00')
+  expect(formatCents(150000)).toBe('$1,500.00')
 })
 
 // formatDollars rounds to whole dollars; it is for shipping copy only, never for prices shown at checkout.

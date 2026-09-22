@@ -1,4 +1,12 @@
 import { mulberry32 } from './prng'
+test('seed 42 produces a pinned sequence', () => {
+  const rand = mulberry32(42)
+  expect([rand(), rand(), rand()]).toEqual([
+    0.6011037519201636,
+    0.44829055899754167,
+    0.8524657934904099,
+  ])
+})
 test('same seed produces the same first five numbers', () => {
   const a = mulberry32(42), b = mulberry32(42)
   const seqA = [a(), a(), a(), a(), a()], seqB = [b(), b(), b(), b(), b()]
