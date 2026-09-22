@@ -11,7 +11,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**', 'functions/**', 'app/**'],
-      exclude: ['**/*.test.*', 'src/posters/__golden__/**'],
+      exclude: ['**/*.test.*', '**/*.md', 'src/posters/__golden__/**'],
       reporter: ['text', 'lcov'],
     },
   },

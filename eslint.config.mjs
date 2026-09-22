@@ -13,7 +13,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
-  { ignores: ["out/**", ".next/**", "public/**"] },
+  { ignores: ["out/**", ".next/**", "public/**", "coverage/**"] },
   {
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/posters/templates/**"],
