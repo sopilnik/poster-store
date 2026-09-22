@@ -1,13 +1,9 @@
 import Link from 'next/link'
 import { shippingCents, subtotalCents, totalCents } from '@/cart/totals'
 import type { DeliveryId, PricedLine } from '@/cart/types'
+import { DELIVERY_LABELS } from '@/cart/delivery'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
-
-const DELIVERY_LABELS: Record<DeliveryId, string> = {
-  standard: 'Standard shipping',
-  express: 'Express shipping',
-}
 
 export function OrderSummary({ lines, delivery }: { lines: PricedLine[]; delivery: DeliveryId }) {
   const subtotal = subtotalCents(lines)

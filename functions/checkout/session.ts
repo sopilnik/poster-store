@@ -3,6 +3,7 @@ import { parseSku, variantPriceCents } from '../../src/catalog/pricing'
 import { PALETTES } from '../../src/catalog/palettes'
 import { sizeById } from '../../src/catalog/sizes'
 import { shippingCents } from '../../src/cart/totals'
+import { DELIVERY_LABELS } from '../../src/cart/delivery'
 import type { DeliveryId } from '../../src/cart/types'
 import type { Env } from './env'
 import type { CheckoutSessionInput } from './schema'
@@ -75,11 +76,6 @@ export type StripeLike = {
 export type LineItemsResult =
   | { ok: true; lineItems: CheckoutLineItem[]; shippingOptions: CheckoutShippingOption[]; totalCents: number }
   | { ok: false }
-
-const DELIVERY_LABELS: Record<DeliveryId, string> = {
-  standard: 'Standard shipping',
-  express: 'Express shipping',
-}
 
 export function buildLineItems(
   items: { sku: string; qty: number }[],

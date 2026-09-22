@@ -2,13 +2,9 @@ import Link from 'next/link'
 import { cn } from 'cn'
 import { shippingCents, subtotalCents, totalCents } from '@/cart/totals'
 import type { DeliveryId, PricedLine } from '@/cart/types'
+import { DELIVERY_LABELS } from '@/cart/delivery'
 import { buttonVariants } from '@/components/ui/button'
 import { formatCents } from '@/lib/money'
-
-const DELIVERY_LABELS: Record<DeliveryId, string> = {
-  standard: 'Standard shipping',
-  express: 'Express shipping',
-}
 
 export function CartSummary({
   lines,

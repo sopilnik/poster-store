@@ -1,10 +1,11 @@
 import { skuOf } from '../catalog/pricing'
 import type { CartAction, CartState } from './types'
 
+export const MIN_QTY = 1
 export const MAX_QTY = 10
 
-function clampQty(qty: number): number {
-  return Math.min(MAX_QTY, Math.max(1, qty))
+export function clampQty(qty: number): number {
+  return Math.min(MAX_QTY, Math.max(MIN_QTY, qty))
 }
 
 export function cartReducer(state: CartState, action: CartAction): CartState {

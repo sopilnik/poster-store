@@ -4,13 +4,7 @@ import { useState } from 'react'
 import { Minus, Plus } from 'lucide-react'
 import { cn } from 'cn'
 import { Button } from '@/components/ui/button'
-import { MAX_QTY } from '@/cart/reducer'
-
-const MIN_QTY = 1
-
-function clamp(qty: number): number {
-  return Math.min(MAX_QTY, Math.max(MIN_QTY, qty))
-}
+import { clampQty, MAX_QTY, MIN_QTY } from '@/cart/reducer'
 
 export function QuantityStepper({
   value,
@@ -34,7 +28,7 @@ export function QuantityStepper({
   }
 
   function step(delta: number) {
-    onChange(clamp(value + delta))
+    onChange(clampQty(value + delta))
     reset()
   }
 

@@ -1,4 +1,4 @@
-import { cartReducer, MAX_QTY } from './reducer'
+import { cartReducer, clampQty, MAX_QTY } from './reducer'
 import type { CartState } from './types'
 
 const variant = { productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 'ink' as const }
@@ -48,6 +48,12 @@ test('clear empties the cart', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
   state = cartReducer(state, { type: 'clear' })
   expect(state.items).toEqual([])
+})
+
+test('clampQty clamps below the minimum, above the maximum, and passes through in range', () => {
+  expect(clampQty(0)).toBe(1)
+  expect(clampQty(11)).toBe(MAX_QTY)
+  expect(clampQty(5)).toBe(5)
 })
 
 test('replace swaps the items outright', () => {

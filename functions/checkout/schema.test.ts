@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { MAX_CART_LINES } from '../../src/checkout/limits'
+import { MAX_QTY } from '../../src/cart/reducer'
 import { checkoutSessionSchema } from './schema'
 
 const VALID = {
@@ -50,6 +51,18 @@ test('qty 10 passes', () => {
   expect(checkoutSessionSchema.safeParse({ ...VALID, items: [{ sku: 'quiet-hours-a3-ink', qty: 10 }] }).success).toBe(
     true
   )
+})
+
+test('qty at MAX_QTY passes', () => {
+  expect(
+    checkoutSessionSchema.safeParse({ ...VALID, items: [{ sku: 'quiet-hours-a3-ink', qty: MAX_QTY }] }).success
+  ).toBe(true)
+})
+
+test('qty over MAX_QTY fails', () => {
+  expect(
+    checkoutSessionSchema.safeParse({ ...VALID, items: [{ sku: 'quiet-hours-a3-ink', qty: MAX_QTY + 1 }] }).success
+  ).toBe(false)
 })
 
 test('an unknown delivery value fails', () => {

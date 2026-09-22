@@ -1,12 +1,8 @@
 import { parseSku } from '../catalog/pricing'
-import { MAX_QTY } from './reducer'
+import { clampQty } from './reducer'
 import type { CartItem } from './types'
 
 export const CART_KEY = 'formline.cart.v1'
-
-function clampQty(qty: number): number {
-  return Math.min(MAX_QTY, Math.max(1, qty))
-}
 
 export function loadCart(): CartItem[] {
   if (typeof window === 'undefined') return []
