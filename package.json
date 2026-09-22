@@ -15,6 +15,7 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit && tsc -p tsconfig.functions.json --noEmit",
     "test": "vitest run",
+    "pretest:e2e": "pnpm build",
     "test:e2e": "playwright test",
     "functions:dev": "wrangler dev --port 8787"
   },

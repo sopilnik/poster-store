@@ -2,6 +2,12 @@ import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 const root = path.resolve('out'), port = Number(process.env.PORT ?? 4321)
+try {
+  if (!(await stat(path.join(root, 'index.html'))).isFile()) throw new Error()
+} catch {
+  console.error('serve: no build in out/ — run pnpm build first')
+  process.exit(1)
+}
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml', '.ttf': 'font/ttf', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json' }
 async function resolve(urlPath) {
   let decoded

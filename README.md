@@ -42,6 +42,8 @@ pnpm test
 pnpm test:e2e
 ```
 
+`pnpm test:e2e` builds the export first, so it always runs against the current code.
+
 Lighthouse, against `pnpm preview`:
 
 ```bash
