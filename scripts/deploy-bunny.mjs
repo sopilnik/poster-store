@@ -153,6 +153,10 @@ export async function main() {
   }
 
   const files = await listFiles(OUT_DIR)
+  if (!files.some(file => remotePath(file) === 'index.html')) {
+    console.error('deploy-bunny: out/ has no index.html, refusing to deploy')
+    process.exit(1)
+  }
   const nonHtmlFiles = files.filter(file => path.extname(file) !== '.html')
   const htmlFiles = files.filter(file => path.extname(file) === '.html')
   const orderedFiles = [...nonHtmlFiles, ...htmlFiles]
