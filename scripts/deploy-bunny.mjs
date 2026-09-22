@@ -124,8 +124,7 @@ async function deleteRemote(env, remote, isDirectory) {
   if (!response.ok) throw new Error(`delete failed (${response.status}) for ${remote}`)
 }
 
-async function removeStale(env, localPaths) {
-  const remoteEntries = await listRemote(env)
+async function removeStale(env, remoteEntries, localPaths) {
   const { staleFiles, staleDirs } = staleEntries(remoteEntries, localPaths)
   for (const remote of staleFiles) await deleteRemote(env, remote, false)
   for (const remote of staleDirs) await deleteRemote(env, remote, true)
@@ -160,12 +159,15 @@ export async function main() {
   const nonHtmlFiles = files.filter(file => path.extname(file) !== '.html')
   const htmlFiles = files.filter(file => path.extname(file) === '.html')
   const orderedFiles = [...nonHtmlFiles, ...htmlFiles]
+
+  const remoteEntries = await listRemote(env)
+
   let totalBytes = 0
   for (const file of orderedFiles) {
     totalBytes += await uploadFile(env, file)
   }
 
-  const removed = await removeStale(env, orderedFiles.map(remotePath))
+  const removed = await removeStale(env, remoteEntries, orderedFiles.map(remotePath))
 
   await purgeCache(env)
 
