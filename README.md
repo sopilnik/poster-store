@@ -40,6 +40,7 @@ not in the tree.
 
 ```bash
 pnpm test
+pnpm test:coverage
 pnpm test:e2e
 ```
 
