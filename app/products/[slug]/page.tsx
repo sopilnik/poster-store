@@ -8,6 +8,7 @@ import { PRODUCTS, productBySlug } from '@/catalog/products'
 import { FREE_SHIPPING_FROM_CENTS, SIZES } from '@/catalog/sizes'
 import { formatDollars } from '@/lib/money'
 import { pageMetadata } from '@/lib/metadata'
+import { productJsonLd } from '@/lib/structuredData'
 
 export function generateStaticParams() {
   return PRODUCTS.map(p => ({ slug: p.slug }))
@@ -37,8 +38,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const collection = collectionBySlug(product.collection)
   const more = PRODUCTS.filter(p => p.collection === product.collection && p.slug !== product.slug)
 
+  const jsonLd = productJsonLd(product)
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+      />
       <Breadcrumb
         items={[
           { href: '/shop/', label: 'Shop' },
