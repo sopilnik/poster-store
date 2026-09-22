@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { formatCents } from '@/lib/money'
 import { CHECKOUT_API, hasCheckoutApi } from '@/lib/site'
 
@@ -28,6 +28,11 @@ export function PaymentStatus({
 }) {
   const [state, setState] = useState<State>({ kind: 'loading' })
 
+  const onPaidRef = useRef(onPaid)
+  useEffect(() => {
+    onPaidRef.current = onPaid
+  })
+
   useEffect(() => {
     if (!sessionId || !hasCheckoutApi()) return
     let cancelled = false
@@ -45,7 +50,7 @@ export function PaymentStatus({
         }
         if (body.payment_status === 'paid' && typeof body.amount_total === 'number' && body.orderId === orderId) {
           setState({ kind: 'paid', amountCents: body.amount_total })
-          onPaid?.()
+          onPaidRef.current?.()
         } else {
           setState({ kind: 'not-completed' })
         }
@@ -57,7 +62,7 @@ export function PaymentStatus({
     return () => {
       cancelled = true
     }
-  }, [sessionId, orderId, onPaid])
+  }, [sessionId, orderId])
 
   if (!sessionId || !hasCheckoutApi() || state.kind === 'loading') return null
 

@@ -17,11 +17,17 @@ function isStripeUrl(target: URL): boolean {
   return target.protocol === 'https:' && (target.hostname === 'stripe.com' || target.hostname.endsWith('.stripe.com'))
 }
 
+type CheckState = { checked: false; placed: false } | { checked: true; placed: boolean }
+
+function checkReducer(_state: CheckState, placed: boolean): CheckState {
+  return { checked: true, placed }
+}
+
 export function CheckoutPageClient() {
   const { items, hydrated, dispatch } = useCart()
   const router = useRouter()
   const lines = priceLines(items)
-  const [checked, markChecked] = useReducer(() => true, false)
+  const [{ checked, placed }, markChecked] = useReducer(checkReducer, { checked: false, placed: false })
 
   useEffect(() => {
     if (!hydrated) return
@@ -32,15 +38,14 @@ export function CheckoutPageClient() {
         clearOrder()
       }
     }
-    markChecked()
-    // The cart at mount time decides whether a pending order is restored; it is read once,
-    // right after hydration, and does not need to re-run when the cart changes afterwards.
+    markChecked(lines.length === 0 ? loadOrder() !== null : false)
+    // The cart at mount time decides whether a pending order is restored and whether the cart is
+    // already placed; both are read once, right after hydration, and do not need to re-run when
+    // the cart changes afterwards.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated])
 
   if (!hydrated || !checked) return null
-
-  const placed = lines.length === 0 ? loadOrder() !== null : false
 
   if (placed) {
     return (

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { hasCheckoutApi } from '@/lib/site'
 import { PaymentStatus } from './PaymentStatus'
 
@@ -169,4 +169,35 @@ test('does not call onPaid when the session is not paid', async () => {
 
   await screen.findByText('Payment not completed')
   expect(onPaid).not.toHaveBeenCalled()
+})
+
+test('does not refetch when onPaid changes identity across re-renders, and calls the latest onPaid', async () => {
+  let resolveJson!: (value: unknown) => void
+  const fetchMock = vi.fn(async () => ({
+    ok: true,
+    json: () =>
+      new Promise(resolve => {
+        resolveJson = resolve
+      }),
+  }))
+  vi.stubGlobal('fetch', fetchMock)
+
+  const firstOnPaid = vi.fn()
+  const secondOnPaid = vi.fn()
+  const { rerender } = render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={firstOnPaid} />)
+
+  rerender(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={secondOnPaid} />)
+  rerender(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={secondOnPaid} />)
+
+  await waitFor(() => {
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  await act(async () => {
+    resolveJson({ payment_status: 'paid', amount_total: 1200, orderId: 'FL-AAAAAA' })
+  })
+
+  expect(await screen.findByText('Paid (test mode) · $12.00')).toBeInTheDocument()
+  expect(firstOnPaid).not.toHaveBeenCalled()
+  expect(secondOnPaid).toHaveBeenCalledTimes(1)
 })

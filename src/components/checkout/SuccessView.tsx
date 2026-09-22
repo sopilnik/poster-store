@@ -2,28 +2,39 @@
 
 import Link from 'next/link'
 import { useEffect, useReducer } from 'react'
+import type { Order } from '@/checkout/order'
 import { loadOrder, saveOrder } from '@/checkout/storage'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
 import { PaymentStatus } from './PaymentStatus'
 
-type MountState = { mounted: false; sessionId: null } | { mounted: true; sessionId: string | null }
+type MountState =
+  | { mounted: false; sessionId: null; order: null }
+  | { mounted: true; sessionId: string | null; order: Order | null }
 
-function mountReducer(_state: MountState, sessionId: string | null): MountState {
-  return { mounted: true, sessionId }
+type MountAction = { type: 'mount'; sessionId: string | null; order: Order | null } | { type: 'paid'; order: Order }
+
+function mountReducer(state: MountState, action: MountAction): MountState {
+  switch (action.type) {
+    case 'mount':
+      return { mounted: true, sessionId: action.sessionId, order: action.order }
+    case 'paid':
+      return state.mounted ? { ...state, order: action.order } : state
+  }
 }
 
 export function SuccessView() {
-  const [{ mounted, sessionId }, markMounted] = useReducer(mountReducer, { mounted: false, sessionId: null })
+  const [{ sessionId, order }, dispatch] = useReducer(mountReducer, { mounted: false, sessionId: null, order: null })
   useEffect(() => {
-    markMounted(new URLSearchParams(window.location.search).get('session_id'))
+    const sid = new URLSearchParams(window.location.search).get('session_id')
+    dispatch({ type: 'mount', sessionId: sid, order: loadOrder() })
   }, [])
-
-  const order = mounted ? loadOrder() : null
 
   function handlePaid() {
     if (order && order.paymentStatus !== 'paid') {
-      saveOrder({ ...order, paymentStatus: 'paid' })
+      const paid = { ...order, paymentStatus: 'paid' as const }
+      saveOrder(paid)
+      dispatch({ type: 'paid', order: paid })
     }
   }
 
