@@ -30,7 +30,7 @@ export function SuccessView() {
   if (!order) {
     return (
       <div className="mt-6 flex flex-col items-start gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Order confirmation</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">Order confirmation</h1>
         <p className="text-sm text-muted-foreground">
           A confirmation lives only in the tab that placed the order.
         </p>
@@ -44,7 +44,7 @@ export function SuccessView() {
   return (
     <div className="mt-6 flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Thank you for your order</h1>
+        <h1 className="font-heading text-2xl font-bold tracking-tight">Thank you for your order</h1>
         <p className="text-sm text-muted-foreground">Order {order.id}</p>
       </div>
       <PaymentStatus sessionId={sessionId} onPaid={handlePaid} />
