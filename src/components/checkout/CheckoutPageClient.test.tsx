@@ -98,6 +98,37 @@ test('a checkout session response without a valid https url keeps the cart and d
   expect(assignSpy).not.toHaveBeenCalled()
 })
 
+test('a checkout session response with a valid https url clears the cart and navigates there', async () => {
+  const assignSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: assignSpy })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.test/s' }) }))
+  )
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
+  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
+  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
+  await userEvent.type(screen.getByLabelText(/city/i), 'London')
+  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
+
+  await waitFor(() => {
+    expect(assignSpy).toHaveBeenCalledWith('https://checkout.stripe.test/s')
+  })
+  expect(dispatch).toHaveBeenCalledWith({ type: 'clear' })
+  expect(toast).not.toHaveBeenCalled()
+  expect(loadOrder()).toMatchObject({ payment: 'stripe', paymentStatus: 'pending' })
+})
+
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
   const lines = priceLines(CART_ITEMS)
   const subtotal = subtotalCents(lines)
