@@ -26,14 +26,20 @@ test('the order summary is exposed as a named region', () => {
   expect(screen.getByRole('region', { name: 'Order summary' })).toBeInTheDocument()
 })
 
-test('submitting empty shows at least four error messages and onSubmit is not called', async () => {
+test('submitting the empty form shows every required-field message', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
 
   await userEvent.click(screen.getByRole('button', { name: /place demo order/i }))
 
   await waitFor(() => {
-    expect(screen.getAllByRole('alert').length).toBeGreaterThanOrEqual(4)
+    expect(screen.getAllByRole('alert').map((alert) => alert.textContent)).toEqual([
+      'Enter a valid email address',
+      'Enter your full name',
+      'Enter your street address',
+      'Enter your city',
+      'Use 3 to 12 letters, digits, spaces or dashes',
+    ])
   })
   expect(onSubmit).not.toHaveBeenCalled()
 })
