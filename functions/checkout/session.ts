@@ -203,7 +203,12 @@ export async function getSession(stripe: StripeLike, id: string): Promise<GetSes
         orderId: session.metadata?.orderId ?? null,
       },
     }
-  } catch {
-    return { ok: false, status: 404, error: 'Session not found' }
+  } catch (error) {
+    const { code, statusCode } = error as { code?: unknown; statusCode?: unknown }
+    if (code === 'resource_missing' || statusCode === 404) {
+      return { ok: false, status: 404, error: 'Session not found' }
+    }
+    console.error('checkout: session lookup failed', code ?? statusCode ?? (error instanceof Error ? error.message : 'unknown'))
+    return { ok: false, status: 502, error: 'Session lookup failed' }
   }
 }

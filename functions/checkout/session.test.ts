@@ -240,17 +240,55 @@ test('getSession strips address and email, keeping only status fields', async ()
   })
 })
 
-test('getSession returns 404 when the retrieve call throws', async () => {
+test('getSession returns 404 when stripe reports the session as missing', async () => {
   const stripe = fakeStripe({
     checkout: {
       sessions: {
         create: async () => ({ id: 'cs_test_1', url: 'https://checkout.stripe.test/s' }),
         retrieve: async () => {
-          throw new Error('no such session')
+          throw { code: 'resource_missing', statusCode: 404 }
         },
       },
     },
   })
   const result = await getSession(stripe, 'cs_missing')
   expect(result).toEqual({ ok: false, status: 404, error: 'Session not found' })
+})
+
+test('getSession returns 502 and logs when the retrieve call fails with a Stripe server error', async () => {
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  const stripe = fakeStripe({
+    checkout: {
+      sessions: {
+        create: async () => ({ id: 'cs_test_1', url: 'https://checkout.stripe.test/s' }),
+        retrieve: async () => {
+          throw { statusCode: 500 }
+        },
+      },
+    },
+  })
+  const result = await getSession(stripe, 'cs_test_1')
+  expect(result).toEqual({ ok: false, status: 502, error: 'Session lookup failed' })
+  expect(errorSpy).toHaveBeenCalledOnce()
+  errorSpy.mockRestore()
+})
+
+test('getSession returns 502 and logs when the retrieve call throws a network error', async () => {
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+  const stripe = fakeStripe({
+    checkout: {
+      sessions: {
+        create: async () => ({ id: 'cs_test_1', url: 'https://checkout.stripe.test/s' }),
+        retrieve: async () => {
+          throw new Error('socket hang up')
+        },
+      },
+    },
+  })
+  const result = await getSession(stripe, 'cs_test_1')
+  expect(result).toEqual({ ok: false, status: 502, error: 'Session lookup failed' })
+  expect(errorSpy).toHaveBeenCalledOnce()
+  const loggedArgs = errorSpy.mock.calls[0]
+  expect(loggedArgs?.some(arg => typeof arg === 'string' && arg.includes('socket hang up'))).toBe(true)
+  errorSpy.mockRestore()
 })
