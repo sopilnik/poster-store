@@ -187,7 +187,12 @@ test('POST with an endless stream body on the webhook route returns 413', async 
 })
 
 test('webhook POST with a body under the 64 KB cap returns 200', async () => {
-  const event: StripeEventLike = { id: 'evt_3', type: 'payment_intent.succeeded', data: { object: { id: 'pi_3' } } }
+  const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+  const event: StripeEventLike = {
+    id: 'evt_3',
+    type: 'checkout.session.completed',
+    data: { object: { id: 'cs_test_1', metadata: { orderId: 'FL-AB12C3' }, payment_status: 'paid' } },
+  }
   const request = new Request('https://api.example.test/stripe/webhook', {
     method: 'POST',
     headers: { 'stripe-signature': 'good-sig' },
@@ -195,6 +200,18 @@ test('webhook POST with a body under the 64 KB cap returns 200', async () => {
   })
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
   expect(response.status).toBe(200)
+  expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
+  logSpy.mockRestore()
+})
+
+test('webhook POST with a body over the 64 KB cap returns 413', async () => {
+  const request = new Request('https://api.example.test/stripe/webhook', {
+    method: 'POST',
+    headers: { 'stripe-signature': 'good-sig' },
+    body: JSON.stringify({ padding: 'a'.repeat(65 * 1024) }),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(413)
 })
 
 test('POST with a valid body returns 502 with the error shape and CORS header when create throws', async () => {

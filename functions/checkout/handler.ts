@@ -44,12 +44,12 @@ async function readBody(request: Request, maxBytes: number): Promise<ReadBodyRes
   for (;;) {
     const { done, value } = await reader.read()
     if (done) break
-    chunks.push(value)
     total += value.byteLength
     if (total > maxBytes) {
       await reader.cancel()
       return { ok: false }
     }
+    chunks.push(value)
   }
   const text = new TextDecoder().decode(concatChunks(chunks, total))
   return { ok: true, text }
