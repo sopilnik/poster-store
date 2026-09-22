@@ -46,6 +46,12 @@ pnpm test:e2e
 
 `pnpm test:e2e` builds the export first, so it always runs against the current code.
 
+```bash
+UPDATE_GOLDEN=1 pnpm test src/posters/rasterize.test.ts
+```
+
+Regenerates the golden poster PNG after an intended change to the rasteriser or a template.
+
 Lighthouse, against `pnpm preview`:
 
 ```bash
