@@ -1,27 +1,16 @@
 'use client'
 
-import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 import { Moon, Monitor, Sun } from 'lucide-react'
 import { RadioGroup } from '@base-ui/react/radio-group'
 import { Radio } from '@base-ui/react/radio'
+import { useMounted } from '@/hooks/useMounted'
 
 const OPTIONS = [
   { value: 'light', label: 'Light', Icon: Sun },
   { value: 'system', label: 'System', Icon: Monitor },
   { value: 'dark', label: 'Dark', Icon: Moon },
 ] as const
-
-const noopSubscribe = () => () => {}
-const getClientSnapshot = () => true
-const getServerSnapshot = () => false
-
-// Reads whether the component has hydrated on the client, without setting state from an
-// effect: the client and server snapshots differ on purpose, so React resolves the mismatch
-// during hydration instead of after a mount-triggered render.
-function useMounted() {
-  return useSyncExternalStore(noopSubscribe, getClientSnapshot, getServerSnapshot)
-}
 
 const segmentClass =
   'relative flex size-8 items-center justify-center rounded-sm text-muted-foreground outline-none after:absolute after:-inset-y-1.5 after:-inset-x-px data-checked:bg-primary data-checked:text-primary-foreground focus-visible:ring-2 focus-visible:ring-primary'

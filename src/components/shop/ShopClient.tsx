@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { COLLECTIONS, collectionBySlug } from '@/catalog/collections'
 import { filterProducts, parseShopQuery, serializeShopQuery } from '@/catalog/query'
 import type { ShopQuery, SortId } from '@/catalog/query'
@@ -9,6 +9,7 @@ import { ProductGrid } from '@/components/product/ProductGrid'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useMounted } from '@/hooks/useMounted'
 
 const SEARCH_DEBOUNCE_MS = 150
 
@@ -23,17 +24,6 @@ const SORT_ITEMS: { label: string; value: SortId }[] = [
   { label: 'Price: high to low', value: 'price-desc' },
   { label: 'Name', value: 'name' },
 ]
-
-const noopSubscribe = () => () => {}
-const getClientSnapshot = () => true
-const getServerSnapshot = () => false
-
-// Reads whether the component has hydrated on the client, without setting state from an
-// effect: the client and server snapshots differ on purpose, so React resolves the mismatch
-// during hydration instead of after a mount-triggered render.
-function useMounted() {
-  return useSyncExternalStore(noopSubscribe, getClientSnapshot, getServerSnapshot)
-}
 
 function isCollectionSlug(value: string): value is CollectionSlug {
   return COLLECTIONS.some(c => c.slug === value)
