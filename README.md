@@ -71,4 +71,4 @@ and what deploying it needs.
 MIT for the store's own code, see `LICENSE`. `src/components/ui/` is adapted from shadcn/ui (MIT).
 Base UI (MIT). lucide-react (ISC). Inter and Space Grotesk are licensed under the SIL Open Font
 License 1.1, with their licence files kept beside them at `src/fonts/LICENSE.txt` and
-`public/fonts/OFL.txt`.
+`src/fonts/SpaceGrotesk-OFL.txt`.
