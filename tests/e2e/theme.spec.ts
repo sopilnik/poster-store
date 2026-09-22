@@ -10,3 +10,36 @@ test('the chosen theme survives a reload', async ({ page }) => {
   await page.reload()
   await expect(html).toHaveClass(/\bdark\b/)
 })
+
+test('an invalid field keeps the destructive border at full strength in the dark theme', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await page.goto('/products/quiet-hours/')
+  await page.getByRole('button', { name: 'Add to cart' }).click()
+
+  await page.goto('/checkout/')
+  await page.getByRole('button', { name: /^Place demo order · \$/ }).click()
+
+  const field = page.getByLabel('Email')
+  await expect(field).toHaveAttribute('aria-invalid', 'true')
+
+  const destructiveColor = await page.evaluate(() => {
+    const probe = document.createElement('div')
+    probe.style.color = 'var(--destructive)'
+    document.body.appendChild(probe)
+    const destructive = getComputedStyle(probe).color
+    probe.remove()
+    return destructive
+  })
+
+  // The border animates in through the field's transition-colors utility, so poll
+  // instead of reading getComputedStyle once and racing the transition's end state.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const email = document.getElementById('email')
+        if (!(email instanceof HTMLElement)) throw new Error('email field not found')
+        return getComputedStyle(email).borderColor
+      })
+    )
+    .toBe(destructiveColor)
+})
