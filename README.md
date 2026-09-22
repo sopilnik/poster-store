@@ -13,9 +13,10 @@ ends in a fake order. Nothing here ships a real product or takes a real payment.
 
 ## Stack
 
-Next.js static export, TypeScript, React, Base UI primitives adapted with shadcn/ui conventions, plain
-CSS with design tokens. Posters and OG images are generated at build time from SVG templates and
-rendered to PNG with resvg. Vitest for unit tests, Playwright for the end-to-end suite.
+Next.js static export, TypeScript, React, Tailwind CSS 4 with CSS custom-property design tokens in
+app/globals.css, Base UI primitives adapted with shadcn/ui conventions. Posters and OG images are
+generated at build time from SVG templates and rendered to PNG with resvg. Vitest for unit tests,
+Playwright for the end-to-end suite.
 
 ## Run it
 
