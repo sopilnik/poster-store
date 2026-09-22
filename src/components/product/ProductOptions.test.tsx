@@ -21,7 +21,7 @@ test('price follows size and palette selection and add dispatches the variant', 
   expect(screen.getByText('$29.00', { selector: 'p' })).toBeInTheDocument()
 
   await userEvent.click(screen.getByRole('combobox', { name: /size/i }))
-  await userEvent.click(screen.getByRole('option', { name: /A2/ }))
+  await userEvent.click(await screen.findByRole('option', { name: /A2/ }))
   expect(screen.getByText('$45.00', { selector: 'p' })).toBeInTheDocument()
 
   await userEvent.click(screen.getByRole('radio', { name: 'Ink' }))
