@@ -2,13 +2,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { CartContext } from '@/cart/CartProvider'
-import { priceLines, shippingCents, subtotalCents } from '@/cart/totals'
 import type { CartAction, CartContextValue, CartItem } from '@/cart/types'
 import { PRODUCTS } from '@/catalog/products'
 import { MAX_CART_LINES } from '@/checkout/limits'
-import type { Order } from '@/checkout/order'
 import { loadOrder, saveOrder } from '@/checkout/storage'
 import { CheckoutPageClient } from './CheckoutPageClient'
+import { fillCheckoutForm, makeOrder } from './test-helpers'
 
 vi.mock('@/lib/site', () => ({ CHECKOUT_API: 'http://127.0.0.1:8787', hasCheckoutApi: () => true }))
 vi.mock('sonner', () => ({ toast: vi.fn() }))
@@ -64,11 +63,7 @@ test('a rejected checkout session request keeps the form and shows the toast', a
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -92,11 +87,7 @@ test('a cart over the line limit shows the card limit toast instead of starting 
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -125,11 +116,7 @@ test('a checkout session response pointing off Stripe keeps the cart and does no
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -156,11 +143,7 @@ test('a checkout session response using a non-https url to a Stripe host keeps t
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -187,11 +170,7 @@ test('a checkout session response without a valid https url keeps the cart and d
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -218,11 +197,7 @@ test('a checkout session response with a valid https url clears the cart and nav
     </CartContext.Provider>
   )
 
-  await userEvent.type(screen.getByLabelText(/email/i), 'buyer@example.com')
-  await userEvent.type(screen.getByLabelText(/full name/i), 'Jordan Rivers')
-  await userEvent.type(screen.getByLabelText(/^address/i), '221B Baker Street')
-  await userEvent.type(screen.getByLabelText(/city/i), 'London')
-  await userEvent.type(screen.getByLabelText(/postal code/i), 'NW1 6XE')
+  await fillCheckoutForm(userEvent)
   await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
 
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
@@ -236,28 +211,7 @@ test('a checkout session response with a valid https url clears the cart and nav
 })
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
-  const lines = priceLines(CART_ITEMS)
-  const subtotal = subtotalCents(lines)
-  const shipping = shippingCents(subtotal, 'standard')
-  const order: Order = {
-    id: 'FL-AB12C3',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    items: lines,
-    subtotalCents: subtotal,
-    shippingCents: shipping,
-    totalCents: subtotal + shipping,
-    address: {
-      email: 'buyer@example.com',
-      fullName: 'Jordan Rivers',
-      address: '221B Baker Street',
-      city: 'London',
-      postalCode: 'NW1 6XE',
-      country: 'United Kingdom',
-    },
-    delivery: 'standard',
-    payment: 'stripe',
-    paymentStatus: 'pending',
-  }
+  const order = makeOrder()
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
@@ -276,27 +230,7 @@ test('a pending Stripe order is restored into the cart and cleared from storage'
 })
 
 test('a placed demo order is not restored and shows the placed message', async () => {
-  const lines = priceLines(CART_ITEMS)
-  const subtotal = subtotalCents(lines)
-  const shipping = shippingCents(subtotal, 'standard')
-  const order: Order = {
-    id: 'FL-AB12C3',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    items: lines,
-    subtotalCents: subtotal,
-    shippingCents: shipping,
-    totalCents: subtotal + shipping,
-    address: {
-      email: 'buyer@example.com',
-      fullName: 'Jordan Rivers',
-      address: '221B Baker Street',
-      city: 'London',
-      postalCode: 'NW1 6XE',
-      country: 'United Kingdom',
-    },
-    delivery: 'standard',
-    payment: 'demo',
-  }
+  const order = makeOrder({ payment: 'demo', paymentStatus: undefined })
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
@@ -312,28 +246,7 @@ test('a placed demo order is not restored and shows the placed message', async (
 })
 
 test('a paid Stripe order is not restored, stays stored and the cart stays empty', async () => {
-  const lines = priceLines(CART_ITEMS)
-  const subtotal = subtotalCents(lines)
-  const shipping = shippingCents(subtotal, 'standard')
-  const order: Order = {
-    id: 'FL-AB12C3',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    items: lines,
-    subtotalCents: subtotal,
-    shippingCents: shipping,
-    totalCents: subtotal + shipping,
-    address: {
-      email: 'buyer@example.com',
-      fullName: 'Jordan Rivers',
-      address: '221B Baker Street',
-      city: 'London',
-      postalCode: 'NW1 6XE',
-      country: 'United Kingdom',
-    },
-    delivery: 'standard',
-    payment: 'stripe',
-    paymentStatus: 'paid',
-  }
+  const order = makeOrder({ paymentStatus: 'paid' })
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
