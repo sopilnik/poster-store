@@ -29,7 +29,6 @@ const eslintConfig = defineConfig([
     ignores: [
       "src/posters/rasterize.ts",
       "src/posters/**/*.test.{ts,tsx}",
-      "src/posters/templates/**",
     ],
     rules: {
       "no-restricted-globals": ["error", "Date", "performance"],
@@ -50,8 +49,6 @@ const eslintConfig = defineConfig([
     // stay clear of Next.js and CSS since they must render outside the app.
     files: ["src/posters/templates/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-globals": ["error", "Date", "performance"],
-      "no-restricted-properties": ["error", { object: "Math", property: "random" }],
       "no-restricted-imports": [
         "error",
         { patterns: [{ group: ["next", "next/*", "*.css", "*.module.css"] }] },
