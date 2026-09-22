@@ -1,5 +1,6 @@
-import { render } from '@testing-library/react'
-import { CartContext } from '@/cart/CartProvider'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { CartContext, CartProvider, useCart } from '@/cart/CartProvider'
 import { CartSheet } from './CartSheet'
 import type { CartAction, CartContextValue } from '@/cart/types'
 
@@ -10,6 +11,15 @@ vi.mock('next/navigation', () => ({
 
 function contextValue(close: () => void): CartContextValue {
   return { items: [], hydrated: true, isOpen: true, open: vi.fn(), close, dispatch: vi.fn<(action: CartAction) => void>() }
+}
+
+function OpenButton() {
+  const { open } = useCart()
+  return (
+    <button type="button" onClick={open}>
+      open
+    </button>
+  )
 }
 
 beforeEach(() => {
@@ -23,7 +33,7 @@ test('closes the sheet when the route changes', () => {
       <CartSheet />
     </CartContext.Provider>
   )
-  const callsOnMount = close.mock.calls.length
+  expect(close.mock.calls.length).toBe(1)
 
   pathname = '/checkout/'
   rerender(
@@ -32,5 +42,28 @@ test('closes the sheet when the route changes', () => {
     </CartContext.Provider>
   )
 
-  expect(close.mock.calls.length).toBeGreaterThan(callsOnMount)
+  expect(close.mock.calls.length).toBe(2)
+})
+
+test('closes the sheet after navigation, with a real cart provider', async () => {
+  const user = userEvent.setup()
+  const { rerender } = render(
+    <CartProvider>
+      <OpenButton />
+      <CartSheet />
+    </CartProvider>
+  )
+
+  await user.click(screen.getByRole('button', { name: 'open' }))
+  expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+  pathname = '/checkout/'
+  rerender(
+    <CartProvider>
+      <OpenButton />
+      <CartSheet />
+    </CartProvider>
+  )
+
+  expect(screen.queryByRole('dialog')).toBeNull()
 })
