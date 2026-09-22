@@ -52,7 +52,7 @@ test('a paid session persists paymentStatus paid on the stored order', async () 
     'fetch',
     vi.fn(async () => ({
       ok: true,
-      json: async () => ({ payment_status: 'paid', amount_total: order.totalCents }),
+      json: async () => ({ payment_status: 'paid', amount_total: order.totalCents, orderId: order.id }),
     }))
   )
 
@@ -61,4 +61,46 @@ test('a paid session persists paymentStatus paid on the stored order', async () 
   await waitFor(() => {
     expect(loadOrder()?.paymentStatus).toBe('paid')
   })
+})
+
+test('a session naming a different order does not mark the stored order paid', async () => {
+  window.history.replaceState(null, '', '/checkout/success/?session_id=cs_test_1')
+  const items: CartItem[] = [
+    { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 },
+  ]
+  const lines = priceLines(items)
+  const subtotal = subtotalCents(lines)
+  const shipping = shippingCents(subtotal, 'standard')
+  const order: Order = {
+    id: 'FL-AB12C3',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    items: lines,
+    subtotalCents: subtotal,
+    shippingCents: shipping,
+    totalCents: subtotal + shipping,
+    address: {
+      email: 'buyer@example.com',
+      fullName: 'Jordan Rivers',
+      address: '221B Baker Street',
+      city: 'London',
+      postalCode: 'NW1 6XE',
+      country: 'United Kingdom',
+    },
+    delivery: 'standard',
+    payment: 'stripe',
+    paymentStatus: 'pending',
+  }
+  saveOrder(order)
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ payment_status: 'paid', amount_total: order.totalCents, orderId: 'FL-ZZ99ZZ' }),
+    }))
+  )
+
+  render(<SuccessView />)
+
+  await screen.findByText('Payment not completed')
+  expect(loadOrder()?.paymentStatus).toBe('pending')
 })
