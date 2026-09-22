@@ -11,9 +11,11 @@ export function OrderSummary({ lines, delivery }: { lines: PricedLine[]; deliver
   const total = totalCents(subtotal, delivery)
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border p-4">
+    <section aria-labelledby="order-summary-heading" className="flex flex-col gap-4 rounded-lg border border-border p-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-heading text-sm font-normal">Order summary</h2>
+        <h2 id="order-summary-heading" className="font-heading text-sm font-normal">
+          Order summary
+        </h2>
         <Link href="/cart/" className="text-sm text-primary hover:underline">
           Edit cart
         </Link>
@@ -50,6 +52,6 @@ export function OrderSummary({ lines, delivery }: { lines: PricedLine[]; deliver
           <span>{formatCents(total)}</span>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

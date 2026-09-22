@@ -19,6 +19,12 @@ function lines() {
   return priceLines(items)
 }
 
+test('the order summary is exposed as a named region', () => {
+  render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
+
+  expect(screen.getByRole('region', { name: 'Order summary' })).toBeInTheDocument()
+})
+
 test('submitting empty shows at least four error messages and onSubmit is not called', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)

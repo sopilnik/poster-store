@@ -57,7 +57,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await expect(page).toHaveURL(/\/checkout\/$/)
   await expect(cart).toBeHidden()
 
-  const summary = page.getByRole('heading', { name: 'Order summary' }).locator('xpath=ancestor::div[2]')
+  const summary = page.getByRole('region', { name: 'Order summary' })
   await expect(summary.getByText('Total', { exact: true })).toBeVisible()
 
   await page.getByLabel('Email').fill('demo@example.com')
