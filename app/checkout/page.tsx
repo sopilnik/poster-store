@@ -1,11 +1,15 @@
+import type { Metadata } from 'next'
 import { CheckoutPageClient } from '@/components/checkout/CheckoutPageClient'
 import { pageMetadata } from '@/lib/metadata'
 
-export const metadata = pageMetadata({
-  title: 'Checkout',
-  description: 'Enter a shipping address and place a demo order.',
-  path: '/checkout/',
-})
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: 'Checkout',
+    description: 'Enter a shipping address and place a demo order.',
+    path: '/checkout/',
+  }),
+  robots: { index: false, follow: true },
+}
 
 export default function CheckoutPage() {
   return (

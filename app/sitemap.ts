@@ -10,8 +10,6 @@ const PATHS = [
   '/shop/',
   ...COLLECTIONS.map(c => `/collections/${c.slug}/`),
   ...PRODUCTS.map(p => `/products/${p.slug}/`),
-  '/cart/',
-  '/checkout/',
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {

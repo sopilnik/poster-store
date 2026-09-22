@@ -1,11 +1,15 @@
+import type { Metadata } from 'next'
 import { CartPageClient } from '@/components/cart/CartPageClient'
 import { pageMetadata } from '@/lib/metadata'
 
-export const metadata = pageMetadata({
-  title: 'Your cart',
-  description: 'Review the posters in your cart before checkout.',
-  path: '/cart/',
-})
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: 'Your cart',
+    description: 'Review the posters in your cart before checkout.',
+    path: '/cart/',
+  }),
+  robots: { index: false, follow: true },
+}
 
 export default function CartPage() {
   return (
