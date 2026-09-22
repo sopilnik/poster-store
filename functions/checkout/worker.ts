@@ -26,7 +26,18 @@ function makeStripe(key: string): StripeLike {
 
 const worker = {
   async fetch(request: Request, env: Env): Promise<Response> {
-    return handle(request, readEnv(env), makeStripe)
+    try {
+      return await handle(request, readEnv(env), makeStripe)
+    } catch (error) {
+      console.error('checkout: unhandled error', error)
+      return new Response(JSON.stringify({ error: 'Internal error' }), {
+        status: 500,
+        headers: {
+          'content-type': 'application/json; charset=utf-8',
+          'cache-control': 'no-store',
+        },
+      })
+    }
   },
 }
 
