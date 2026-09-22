@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CartProvider, useCart } from './CartProvider'
 import { CART_KEY, loadCart } from './storage'
-import { skuOf } from '../catalog/pricing'
+import { skuOf } from '@/catalog/pricing'
 
 const variant = { productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 'ink' as const }
 

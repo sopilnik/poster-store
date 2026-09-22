@@ -1,4 +1,4 @@
-import { parseSku } from '../catalog/pricing'
+import { parseSku } from '@/catalog/pricing'
 import { clampQty } from './reducer'
 import type { CartItem } from './types'
 

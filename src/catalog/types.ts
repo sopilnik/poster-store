@@ -1,4 +1,4 @@
-import type { PosterSpec, PaletteId } from '../posters/types'
+import type { PosterSpec, PaletteId } from '@/posters/types'
 
 export type CollectionSlug = 'monochrome' | 'primary' | 'pastel' | 'night'
 export type Collection = { slug: CollectionSlug; name: string; description: string; representative: string }

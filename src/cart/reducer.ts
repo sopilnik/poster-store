@@ -1,4 +1,4 @@
-import { skuOf } from '../catalog/pricing'
+import { skuOf } from '@/catalog/pricing'
 import type { CartAction, CartState } from './types'
 
 export const MIN_QTY = 1

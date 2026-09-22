@@ -1,4 +1,4 @@
-import type { PaletteId } from '../posters/types'
+import type { PaletteId } from '@/posters/types'
 import type { Product, SizeId, Variant } from './types'
 import { productBySlug } from './products'
 import { sizeById } from './sizes'

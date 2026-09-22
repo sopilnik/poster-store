@@ -1,7 +1,7 @@
-import { PALETTES } from '../catalog/palettes'
-import { productBySlug } from '../catalog/products'
-import { parseSku, variantPriceCents } from '../catalog/pricing'
-import { FREE_SHIPPING_FROM_CENTS, SHIPPING, sizeById } from '../catalog/sizes'
+import { PALETTES } from '@/catalog/palettes'
+import { productBySlug } from '@/catalog/products'
+import { parseSku, variantPriceCents } from '@/catalog/pricing'
+import { FREE_SHIPPING_FROM_CENTS, SHIPPING, sizeById } from '@/catalog/sizes'
 import type { CartItem, DeliveryId, PricedLine } from './types'
 
 export function priceLines(items: CartItem[]): PricedLine[] {

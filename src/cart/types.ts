@@ -1,5 +1,5 @@
-import type { Palette, PaletteId } from '../posters/types'
-import type { Product, Size, SizeId, Variant } from '../catalog/types'
+import type { Palette, PaletteId } from '@/posters/types'
+import type { Product, Size, SizeId, Variant } from '@/catalog/types'
 
 export type CartItem = { sku: string; productSlug: string; sizeId: SizeId; paletteId: PaletteId; qty: number }
 export type CartState = { items: CartItem[] }

@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { Poster } from '../posters/Poster'
-import type { Palette, PosterSpec } from '../posters/types'
+import { Poster } from '@/posters/Poster'
+import type { Palette, PosterSpec } from '@/posters/types'
 
 const CARD_BACKGROUND = '#F4F1EA'
 const CARD_TITLE = '#14110F'

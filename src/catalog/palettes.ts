@@ -1,4 +1,4 @@
-import type { Palette, PaletteId } from '../posters/types'
+import type { Palette, PaletteId } from '@/posters/types'
 
 export const PALETTES = {
   paper:  { id: 'paper',  name: 'Paper',  background: '#F4F1EA', ink: '#14110F', accent: '#D94E1F' },
