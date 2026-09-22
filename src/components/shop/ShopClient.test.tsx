@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react'
+import { render, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ShopClient } from './ShopClient'
 import { PRODUCTS } from '@/catalog/products'
@@ -17,11 +17,10 @@ test('search writes to the URL and clear resets', async () => {
   render(<ShopClient products={PRODUCTS} />)
   expect(screen.getByRole('heading', { level: 1, name: 'All posters' })).toBeInTheDocument()
   await userEvent.type(await screen.findByRole('searchbox', { name: /search/i }), 'hush')
-  await act(async () => {
-    await new Promise(r => setTimeout(r, 200))
+  await waitFor(() => {
+    expect(window.location.search).toBe('?q=hush')
+    expect(screen.getByText('1 poster')).toBeInTheDocument()
   })
-  expect(window.location.search).toBe('?q=hush')
-  expect(screen.getByText('1 poster')).toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: /clear filters/i }))
   expect(window.location.search).toBe('')
 })
