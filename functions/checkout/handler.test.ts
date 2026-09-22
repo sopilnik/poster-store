@@ -86,7 +86,8 @@ test('POST with a valid body returns 200 and the session url', async () => {
   const response = await handle(request, ENV, makeStripeFactory())
   expect(response.status).toBe(200)
   expect(response.headers.get('cache-control')).toBe('no-store')
-  expect(response.headers.get('content-type')).toBe('application/json')
+  expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
+  expect(response.headers.get('x-content-type-options')).toBe('nosniff')
   await expect(response.json()).resolves.toEqual({ url: 'https://checkout.stripe.test/s', id: 'cs_test_1' })
 })
 
@@ -213,7 +214,7 @@ test('POST with a valid body returns 502 with the error shape and CORS header wh
   )
   expect(response.status).toBe(502)
   expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:4321')
-  expect(response.headers.get('content-type')).toBe('application/json')
+  expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
   await expect(response.json()).resolves.toEqual({ error: 'Could not create a checkout session' })
 })
 
@@ -300,6 +301,8 @@ test('an unknown path returns 404', async () => {
   const request = new Request('https://api.example.test/checkout/nope', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
   expect(response.status).toBe(404)
+  expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
+  expect(response.headers.get('x-content-type-options')).toBe('nosniff')
 })
 
 test('an unsupported method on the session route returns 405', async () => {

@@ -151,7 +151,7 @@ export async function createSession(
   env: Env
 ): Promise<CreateSessionResult> {
   const built = buildLineItems(input.items, input.delivery, env.SITE_URL)
-  if (!built.ok) return { ok: false, status: 400, error: `Unknown SKU: ${built.sku}` }
+  if (!built.ok) return { ok: false, status: 400, error: 'Unknown SKU' }
 
   const key = await idempotencyKey(input.orderId, input.items, input.delivery, input.email)
   const params: CheckoutSessionParams = {

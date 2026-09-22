@@ -9,7 +9,11 @@ const MAX_WEBHOOK_BODY_BYTES = 64 * 1024
 function jsonResponse(status: number, body: unknown, headers: HeadersInit): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'content-type': 'application/json', ...headers },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'x-content-type-options': 'nosniff',
+      ...headers,
+    },
   })
 }
 

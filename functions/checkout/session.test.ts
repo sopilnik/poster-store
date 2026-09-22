@@ -180,7 +180,7 @@ test('createSession rejects an unknown sku without calling stripe', async () => 
     { orderId: 'FL-AB12C3', items: [{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], delivery: 'standard' },
     ENV
   )
-  expect(result).toEqual({ ok: false, status: 400, error: 'Unknown SKU: not-a-real-sku-a3-ink' })
+  expect(result).toEqual({ ok: false, status: 400, error: 'Unknown SKU' })
   expect(stripe.calls.create).toHaveLength(0)
 })
 
