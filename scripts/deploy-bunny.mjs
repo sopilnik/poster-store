@@ -1,5 +1,5 @@
 // main() uploads non-HTML files before HTML, then deletes every remote file
-// (deepest directories last) that is absent from the current build, then
+// (deepest directories first) that is absent from the current build, then
 // purges the pull zone's cache.
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
