@@ -79,6 +79,7 @@ test('a rejected checkout session request keeps the form and shows the toast', a
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(pushMock).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: /pay with card/i })).toBeInTheDocument()
+  expect(loadOrder()).toBeNull()
 })
 
 test('a cart over the line limit shows the card limit toast instead of starting checkout', async () => {
@@ -110,12 +111,12 @@ test('a cart over the line limit shows the card limit toast instead of starting 
   expect(loadOrder()).toBeNull()
 })
 
-test('a checkout session response without a valid https url keeps the cart and does not navigate', async () => {
+test('a checkout session response pointing off Stripe keeps the cart and does not navigate', async () => {
   const assignSpy = vi.fn()
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'javascript:alert(1)' }) }))
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://evilstripe.com/pay' }) }))
   )
   const dispatch = vi.fn<(action: CartAction) => void>()
   render(
@@ -138,6 +139,7 @@ test('a checkout session response without a valid https url keeps the cart and d
   })
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(assignSpy).not.toHaveBeenCalled()
+  expect(loadOrder()).toBeNull()
 })
 
 test('a checkout session response with a valid https url clears the cart and navigates there', async () => {
@@ -145,7 +147,7 @@ test('a checkout session response with a valid https url clears the cart and nav
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.test/s' }) }))
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
   )
   const dispatch = vi.fn<(action: CartAction) => void>()
   render(
@@ -164,7 +166,7 @@ test('a checkout session response with a valid https url clears the cart and nav
   await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
 
   await waitFor(() => {
-    expect(assignSpy).toHaveBeenCalledWith('https://checkout.stripe.test/s')
+    expect(assignSpy).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_test_1')
   })
   expect(dispatch).toHaveBeenCalledWith({ type: 'clear' })
   expect(toast).not.toHaveBeenCalled()

@@ -84,12 +84,17 @@ export function CheckoutPageClient() {
         if (!response.ok) throw new Error('checkout session request failed')
         const data: unknown = await response.json()
         const url = data && typeof data === 'object' ? (data as Record<string, unknown>).url : undefined
-        if (typeof url !== 'string' || !url.startsWith('https://')) {
-          throw new Error('checkout session response did not include a valid url')
+        if (typeof url !== 'string') {
+          throw new Error('checkout session response did not include a Stripe url')
+        }
+        const target = new URL(url)
+        if (target.protocol !== 'https:' || !(target.hostname === 'stripe.com' || target.hostname.endsWith('.stripe.com'))) {
+          throw new Error('checkout session response did not include a Stripe url')
         }
         dispatch({ type: 'clear' })
         window.location.assign(url)
       } catch {
+        clearOrder()
         toast('Card payment is unavailable right now. You can place a demo order instead.')
       }
       return
