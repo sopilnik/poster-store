@@ -27,3 +27,8 @@ pyftsubset src/fonts/InterVariable.ttf --output-file=src/fonts/InterVariable-lat
 
 The Inter source TTF is not kept in the tree (it is only ever needed to regenerate the subset); pull a fresh copy
 from the upstream Inter release when a regeneration is needed.
+
+Only Regular (400) and Bold (700) faces of Space Grotesk are shipped. Two headings that asked for an
+in-between weight (`Print details` on the product page, the card title) were changed to `font-bold` and
+`font-normal` respectively so the requested weight matches a face that is actually shipped, instead of
+silently falling back to 400 or 700 under the browser's font-matching rules.

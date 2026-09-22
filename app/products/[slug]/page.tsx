@@ -52,7 +52,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="mt-10 max-w-2xl">
         <p className="leading-relaxed">{product.description}</p>
-        <h2 className="font-heading mt-6 mb-2 text-lg font-semibold">Print details</h2>
+        <h2 className="font-heading mt-6 mb-2 text-lg font-bold">Print details</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
           <li>Paper: 200 gsm matte</li>
           <li>Sizes: {SIZES.map(s => `${s.label} (${s.cm})`).join(', ')}</li>
