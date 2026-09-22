@@ -7,6 +7,7 @@ test('renders all products before hydration state and filters from the URL after
   window.history.replaceState(null, '', '/shop/?collection=night')
   render(<ShopClient products={PRODUCTS} />)
   expect(await screen.findByText('4 posters')).toBeInTheDocument()
+  expect(screen.getByRole('heading', { level: 1, name: 'Night' })).toBeInTheDocument()
   expect(screen.getAllByRole('link', { name: /after dark|far orbit|night blocks|hush/i })).toHaveLength(4)
   expect(screen.getByRole('link', { name: /^After Dark Night from \$24\.00$/ })).toBeInTheDocument()
 })
@@ -14,6 +15,7 @@ test('renders all products before hydration state and filters from the URL after
 test('search writes to the URL and clear resets', async () => {
   window.history.replaceState(null, '', '/shop/')
   render(<ShopClient products={PRODUCTS} />)
+  expect(screen.getByRole('heading', { level: 1, name: 'All posters' })).toBeInTheDocument()
   await userEvent.type(await screen.findByRole('searchbox', { name: /search/i }), 'hush')
   await act(async () => {
     await new Promise(r => setTimeout(r, 200))
