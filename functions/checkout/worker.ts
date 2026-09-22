@@ -31,8 +31,9 @@ function makeStripe(key: string): StripeLike {
             },
           }
         }
-        // Other event types carry a `data.object` without a guaranteed `id`, so only the
-        // fields `dispatchEvent` actually reads for a non-completed event are forwarded.
+        // Other event types carry a `data.object` without a guaranteed `id`, so the local shape
+        // is filled with the event id as a placeholder; dispatchEvent ignores every type but
+        // checkout.session.completed.
         return {
           id: event.id,
           type: event.type,
