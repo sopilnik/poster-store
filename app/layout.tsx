@@ -10,9 +10,18 @@ import { BRAND, SITE_URL } from '@/lib/site'
 import './globals.css'
 
 const inter = localFont({
-  src: '../src/fonts/InterVariable.ttf',
+  src: '../src/fonts/InterVariable-latin.woff2',
   variable: '--font-inter',
   weight: '100 900',
+  display: 'swap',
+})
+
+const spaceGrotesk = localFont({
+  src: [
+    { path: '../src/fonts/SpaceGrotesk-Regular-latin.woff2', weight: '400', style: 'normal' },
+    { path: '../src/fonts/SpaceGrotesk-Bold-latin.woff2', weight: '700', style: 'normal' },
+  ],
+  variable: '--font-space-grotesk',
   display: 'swap',
 })
 
@@ -25,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="flex min-h-screen flex-col font-sans antialiased">
         <ThemeProvider>
           <CartProvider>

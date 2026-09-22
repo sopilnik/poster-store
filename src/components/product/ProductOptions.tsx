@@ -50,7 +50,7 @@ export function ProductOptions({ product }: { product: Product }) {
 
       <div className="flex flex-col gap-6 md:col-span-7">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
+          <h1 className="font-heading text-2xl font-bold tracking-tight">{product.name}</h1>
           <p aria-live="polite" className="mt-1 text-xl font-medium">
             {formatCents(lineCents)}
           </p>

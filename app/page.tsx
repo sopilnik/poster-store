@@ -33,7 +33,7 @@ export default function Home() {
           <PosterFrame spec={HERO_PRODUCT} palette={HERO_PALETTE} label={HERO_PRODUCT.name} />
         </div>
         <div className="flex flex-col gap-4">
-          <h1 className="text-4xl font-bold tracking-tight">Posters made of geometry and type.</h1>
+          <h1 className="font-heading text-4xl font-bold tracking-tight">Posters made of geometry and type.</h1>
           <p className="text-muted-foreground">
             Sixteen prints built from shapes, grids and type, grouped into four collections. A demo storefront that
             shows how the shop works without shipping anything real.
@@ -53,7 +53,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8">
-        <h2 className="mb-6 text-2xl font-bold tracking-tight">Shop by collection</h2>
+        <h2 className="font-heading mb-6 text-2xl font-bold tracking-tight">Shop by collection</h2>
         <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
           {COLLECTIONS.map(c => (
             <Link
@@ -81,12 +81,12 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8">
-        <h2 className="mb-6 text-2xl font-bold tracking-tight">Featured</h2>
+        <h2 className="font-heading mb-6 text-2xl font-bold tracking-tight">Featured</h2>
         <ProductGrid products={FEATURED} eager={2} />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-8 pb-16">
-        <h2 className="mb-6 text-2xl font-bold tracking-tight">How it works</h2>
+        <h2 className="font-heading mb-6 text-2xl font-bold tracking-tight">How it works</h2>
         <ol className="grid gap-x-6 gap-y-8 sm:grid-cols-3">
           {STEPS.map((step, index) => (
             <li key={step.title} className="flex flex-col gap-2">

@@ -10,7 +10,7 @@ export const metadata = pageMetadata({
 export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-2xl font-bold tracking-tight">Checkout</h1>
+      <h1 className="font-heading text-2xl font-bold tracking-tight">Checkout</h1>
       <CheckoutPageClient />
     </div>
   )

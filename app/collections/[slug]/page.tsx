@@ -31,7 +31,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
       <Breadcrumb items={[{ href: '/shop/', label: 'Shop' }, { label: collection.name }]} />
-      <h1 className="mt-4 mb-2 text-2xl font-bold tracking-tight">{collection.name}</h1>
+      <h1 className="font-heading mt-4 mb-2 text-2xl font-bold tracking-tight">{collection.name}</h1>
       <p className="mb-8 max-w-2xl text-muted-foreground">{collection.description}</p>
       <ProductGrid products={products} eager={2} />
     </div>
