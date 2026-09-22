@@ -33,10 +33,26 @@ function twoLines() {
 }
 
 test('buildOrder totals standard shipping', () => {
-  const order = buildOrder(INPUT, twoLines(), '2026-01-01T00:00:00.000Z')
+  const now = '2026-01-01T00:00:00.000Z'
+  const lines = twoLines()
+  const order = buildOrder(INPUT, lines, now)
   expect(order.subtotalCents).toBe(9300)
   expect(order.shippingCents).toBe(900)
   expect(order.totalCents).toBe(10200)
+  expect(order).toMatchObject({
+    createdAt: now,
+    delivery: 'standard',
+    address: {
+      email: INPUT.email,
+      fullName: INPUT.fullName,
+      address: INPUT.address,
+      city: INPUT.city,
+      postalCode: INPUT.postalCode,
+      country: INPUT.country,
+    },
+  })
+  expect(order.address).not.toHaveProperty('payment')
+  expect(order.items).toEqual(lines)
 })
 
 test('buildOrder totals express shipping', () => {

@@ -78,6 +78,16 @@ test('two stored entries of one sku with a non-finite qty merge and clamp to MAX
   expect(items[0]?.qty).toBe(MAX_QTY)
 })
 
+test('a stored object instead of an array yields an empty cart', () => {
+  window.localStorage.setItem(CART_KEY, '{"items":[]}')
+  expect(loadCart()).toEqual([])
+})
+
+test('a stored array of non-object entries yields an empty cart', () => {
+  window.localStorage.setItem(CART_KEY, '[1,2,3]')
+  expect(loadCart()).toEqual([])
+})
+
 test('a throwing localStorage.getItem yields an empty cart and saveCart still does not throw', () => {
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked')

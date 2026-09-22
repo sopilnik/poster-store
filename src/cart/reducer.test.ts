@@ -56,6 +56,12 @@ test('clampQty clamps below the minimum, above the maximum, and passes through i
   expect(clampQty(5)).toBe(5)
 })
 
+test('remove and setQty with an absent sku leave the items unchanged by content', () => {
+  const state = cartReducer(empty(), { type: 'add', variant })
+  expect(cartReducer(state, { type: 'remove', sku: 'missing' }).items).toEqual(state.items)
+  expect(cartReducer(state, { type: 'setQty', sku: 'missing', qty: 5 }).items).toEqual(state.items)
+})
+
 test('replace swaps the items outright', () => {
   const items = [
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 'ink' as const, qty: 3 },
