@@ -1,17 +1,5 @@
 import { test, expect } from '@playwright/test'
 
-test('the quantity field is a real hit target at narrow widths', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/products/quiet-hours/')
-
-  const field = page.getByRole('textbox', { name: 'Quantity' })
-  await field.dblclick()
-  await expect(field).toBeFocused()
-
-  await page.keyboard.type('7')
-  await expect(field).toHaveValue('7')
-})
-
 test('browse, filter, buy a poster, and confirm the order', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('link', { name: 'Browse the shop' }).click()

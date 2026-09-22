@@ -13,7 +13,7 @@ for (const path of paths) {
     })
 
     await page.goto(path)
-    await page.waitForLoadState('networkidle')
+    await expect(page.getByRole('main')).toBeVisible()
 
     expect(errors).toEqual([])
   })
