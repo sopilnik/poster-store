@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { COLLECTIONS } from '@/catalog/collections'
+import { COLLECTIONS, collectionBySlug } from '@/catalog/collections'
 import { filterProducts, parseShopQuery, serializeShopQuery } from '@/catalog/query'
 import type { ShopQuery, SortId } from '@/catalog/query'
 import type { CollectionSlug, Product } from '@/catalog/types'
@@ -99,10 +99,11 @@ export function ShopClient({ products }: { products: Product[] }) {
 
   const results = mounted ? filterProducts(products, query) : products
   const count = results.length
+  const heading = query.collection ? collectionBySlug(query.collection)?.name : 'All posters'
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="mb-6 text-2xl font-bold tracking-tight">All {products.length} posters</h1>
+      <h1 className="mb-6 text-2xl font-bold tracking-tight">{heading}</h1>
 
       {mounted && (
         <div className="mb-6 flex flex-wrap items-center gap-3">
