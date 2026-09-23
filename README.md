@@ -82,12 +82,13 @@ repository variables and secrets that switch each job on and what each one contr
 Repository variables:
 
 - `SITE_URL` — the canonical origin baked into the static export and passed to the checkout function;
-  also gates the static-site deploy job.
+  both deploy jobs run only when it is set.
 - `AUTHOR_URL` — the footer author link baked into the static export.
 - `NEXT_PUBLIC_CHECKOUT_API` — the checkout function's origin; unset, the storefront offers only the
   demo payment.
 - `CHECKOUT_WORKER_NAME` — the stage switch for the checkout function: the deploy-function job runs
-  only when this is set, so the function stays undeployed while the store runs static-only.
+  only when this is set (together with `SITE_URL`), so the function stays undeployed while the store
+  runs static-only.
 - `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_HOST`, `BUNNY_PULL_ZONE_ID` — the bunny.net storage zone and
   pull zone the static export is deployed and purged to.
 
