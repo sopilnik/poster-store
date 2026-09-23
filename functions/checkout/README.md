@@ -55,9 +55,9 @@ Then `wrangler deploy`. Point it at the production site first — `wrangler depl
 or a per-environment `vars` entry in `wrangler.toml` — otherwise the worker keeps sending buyers back to
 `http://localhost:4321` and leaves product images out of the checkout session. In CI, deployment is a separate job
 gated on the `main` branch and on the `CHECKOUT_WORKER_NAME` and `SITE_URL` repository variables being set; once
-that gate opens, the job itself checks the four secrets (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
-`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`) and fails loudly, naming the first one missing, before it tries
-to deploy.
+that gate opens, the job itself checks the two Cloudflare secrets (`CLOUDFLARE_API_TOKEN`,
+`CLOUDFLARE_ACCOUNT_ID`) and fails loudly, naming the first one missing, before it tries to deploy; the Stripe
+secrets stay on Cloudflare (set above with `wrangler secret put`) and are never held in GitHub.
 
 ## What a production shop adds
 
