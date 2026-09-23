@@ -17,25 +17,23 @@ export function NavLinks({ linkClassName }: NavLinksProps) {
   const pathname = usePathname()
   const isCurrent = (href: string) => trim(pathname) === trim(href)
 
+  const links = [
+    { href: '/shop/', label: 'Shop' },
+    ...COLLECTIONS.map(c => ({ href: `/collections/${c.slug}/`, label: c.name })),
+  ]
+
   return (
     <>
-      <Link
-        href="/shop/"
-        className={cn(linkClassName, isCurrent('/shop/') && 'text-primary')}
-        aria-current={isCurrent('/shop/') ? 'page' : undefined}
-      >
-        Shop
-      </Link>
-      {COLLECTIONS.map(c => {
-        const href = `/collections/${c.slug}/`
+      {links.map(({ href, label }) => {
+        const current = isCurrent(href)
         return (
           <Link
-            key={c.slug}
+            key={href}
             href={href}
-            className={cn(linkClassName, isCurrent(href) && 'text-primary')}
-            aria-current={isCurrent(href) ? 'page' : undefined}
+            className={cn(linkClassName, current && 'text-primary')}
+            aria-current={current ? 'page' : undefined}
           >
-            {c.name}
+            {label}
           </Link>
         )
       })}
