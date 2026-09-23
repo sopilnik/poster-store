@@ -5,15 +5,8 @@ import nextTs from 'eslint-config-next/typescript'
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    '.next/**',
-    'out/**',
-    'build/**',
-    'next-env.d.ts',
-  ]),
-  { ignores: ['out/**', '.next/**', 'public/**', 'coverage/**'] },
+  // eslint-config-next already ignores .next, out, build and next-env.d.ts.
+  globalIgnores(['public/**', 'coverage/**']),
   {
     // The authored style: single quotes, no semicolons. The vendored shadcn/ui
     // primitives keep the CLI's own style, so they stay out of this block.
