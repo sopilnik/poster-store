@@ -65,11 +65,11 @@ const server = createServer(async (req, res) => {
   res.end(body)
 })
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
     console.error(`serve: port ${port} is in use`)
   } else {
-    console.error(err.message)
+    console.error(`serve: ${error.message}`)
   }
   process.exit(1)
 })
