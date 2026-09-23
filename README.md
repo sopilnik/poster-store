@@ -73,6 +73,31 @@ session in test mode, using Stripe's own test card. That function is not part of
 export — it lives in `functions/checkout/`, with its own README covering how to run it locally
 and what deploying it needs.
 
+## Deployment
+
+CI (`.github/workflows/ci.yml`) builds and tests on every push, then deploys the static export and the
+checkout function as two separate jobs on `main`. Nothing here holds a value — only the names of the
+repository variables and secrets that switch each job on and what each one controls.
+
+Repository variables:
+
+- `SITE_URL` — the canonical origin baked into the static export and passed to the checkout function;
+  also gates the static-site deploy job.
+- `AUTHOR_URL` — the footer author link baked into the static export.
+- `NEXT_PUBLIC_CHECKOUT_API` — the checkout function's origin; unset, the storefront offers only the
+  demo payment.
+- `CHECKOUT_WORKER_NAME` — the stage switch for the checkout function: the deploy-function job runs
+  only when this is set, so the function stays undeployed while the store runs static-only.
+- `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_HOST`, `BUNNY_PULL_ZONE_ID` — the bunny.net storage zone and
+  pull zone the static export is deployed and purged to.
+
+Repository secrets (names only, never their values):
+
+- `BUNNY_STORAGE_PASSWORD`, `BUNNY_API_KEY` — used by the static-site deploy job.
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — used
+  by the deploy-function job, which checks all four are present and fails, naming the first one
+  missing, before it deploys.
+
 ## Licence
 
 MIT for the store's own code, see `LICENSE`. `src/components/ui/` is adapted from shadcn/ui (MIT).
