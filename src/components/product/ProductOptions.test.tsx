@@ -84,6 +84,13 @@ test('quantity stays within 1 and 10', async () => {
   expect(field).toHaveValue('10')
 })
 
+test('the size and quantity controls carry visible captions like the palette', () => {
+  renderWithCart(vi.fn())
+
+  expect(screen.getByText('Size')).toBeInTheDocument()
+  expect(screen.getByText('Quantity')).toBeInTheDocument()
+})
+
 test('typing a quantity updates the price and the add-to-cart dispatch', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
   renderWithCart(dispatch)

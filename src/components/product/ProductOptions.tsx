@@ -90,6 +90,7 @@ export function ProductOptions({ product }: { product: Product }) {
         </div>
 
         <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Size</span>
           <Select
             items={sizeItems}
             value={sizeId}
@@ -120,13 +121,16 @@ export function ProductOptions({ product }: { product: Product }) {
           </Select>
         </div>
 
-        <QuantityStepper
-          value={qty}
-          onChange={setQty}
-          label="Quantity"
-          decreaseLabel="Decrease quantity"
-          increaseLabel="Increase quantity"
-        />
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium">Quantity</span>
+          <QuantityStepper
+            value={qty}
+            onChange={setQty}
+            label="Quantity"
+            decreaseLabel="Decrease quantity"
+            increaseLabel="Increase quantity"
+          />
+        </div>
 
         <Button size="lg" className="w-full md:max-w-56" onClick={handleAdd}>
           Add to cart
