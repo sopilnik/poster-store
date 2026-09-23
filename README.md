@@ -2,6 +2,8 @@
 
 ![CI](https://github.com/sopilnik/poster-store/actions/workflows/ci.yml/badge.svg)
 
+**Live demo:** [formline.sopilnik.dev](https://formline.sopilnik.dev)
+
 A demo poster store built as a static Next.js export. Orders are not real and nothing is charged.
 
 ![Home page](.github/media/home.png)
