@@ -28,7 +28,7 @@ test('a different palette is a separate line', () => {
   expect(state.items).toHaveLength(2)
 })
 
-test('setQty clamps to 1 and 10', () => {
+test('setQty clamps to 1 and MAX_QTY', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
   const sku = state.items[0]?.sku ?? ''
   state = cartReducer(state, { type: 'setQty', sku, qty: 0 })

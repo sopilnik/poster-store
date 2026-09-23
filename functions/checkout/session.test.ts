@@ -89,6 +89,14 @@ test('buildLineItems returns the express amount regardless of subtotal', () => {
   expect(result.totalCents).toBe(14500)
 })
 
+test('buildLineItems returns the standard amount and a literal total for the below-threshold cart', () => {
+  const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, CART_BELOW_FREE_SHIPPING.delivery, ENV.SITE_URL)
+  expect(result.ok).toBe(true)
+  if (!result.ok) return
+  expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(900)
+  expect(result.totalCents).toBe(3800)
+})
+
 test('buildLineItems fails on an unknown sku', () => {
   const result = buildLineItems([{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], 'standard', ENV.SITE_URL)
   expect(result).toEqual({ ok: false })
