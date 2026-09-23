@@ -3,6 +3,8 @@ allowBuilds:
   sharp: false
   unrs-resolver: false
   workerd: false
+# Blocks packages published less than a day ago, in case a fresh release turns out compromised.
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - '@vitest/mocker@5.0.1'
   - '@vitest/spy@5.0.1'
