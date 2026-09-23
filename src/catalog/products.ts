@@ -82,8 +82,8 @@ export const PRODUCTS: Product[] = [
     description: 'Four letters at full width. Say it with your wall.',
   },
   {
-    slug: 'twelve-by-nine',
-    name: 'Twelve by Nine',
+    slug: 'nine-by-twelve',
+    name: 'Nine by Twelve',
     collection: 'primary',
     template: 'grid',
     params: { columns: 9, rows: 12, density: 0.55, seed: 21 },
