@@ -2,6 +2,9 @@
   "name": "poster-store",
   "version": "0.1.0",
   "private": true,
+  "description": "Demo poster storefront: Next.js static export, parametric SVG posters rendered at build time, cart and checkout",
+  "repository": { "type": "git", "url": "git+https://github.com/sopilnik/poster-store.git" },
+  "homepage": "https://formline.sopilnik.dev",
   "author": "Alexandr Sopilnik",
   "license": "MIT",
   "engines": {

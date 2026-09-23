@@ -5,7 +5,7 @@ export const COLLECTIONS: Collection[] = [
     slug: 'monochrome',
     name: 'Monochrome',
     representative: 'quiet-hours',
-    description: 'Black, off-white and nothing else. Posters that behave in any room.',
+    description: 'Black, off-white and a single accent. Posters that behave in any room.',
   },
   {
     slug: 'primary',
