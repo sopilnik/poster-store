@@ -173,7 +173,7 @@ export function CheckoutForm({
       <div className="flex flex-col gap-6 md:order-1">
         <p className="text-sm text-muted-foreground">
           {hasCheckoutApi()
-            ? 'Choosing card payment sends your order lines to Stripe, in test mode. Your address stays in this browser either way.'
+            ? 'Choosing card payment sends your order lines and email to Stripe, in test mode. The rest of your address stays in this browser either way.'
             : 'Nothing is sent anywhere. What you type stays in this browser and is cleared when you close the tab.'}
         </p>
         <TextField control={control} name="email" label="Email" type="email" autoComplete="email" />

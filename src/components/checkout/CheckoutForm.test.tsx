@@ -96,6 +96,7 @@ test('the Stripe option renders with its helper text when the checkout API is co
 
   expect(screen.getByRole('radio', { name: /card via stripe/i })).toBeInTheDocument()
   expect(screen.getByText(/use card number 4242 4242 4242 4242/i)).toBeInTheDocument()
+  expect(screen.getByText(/sends your order lines and email to Stripe/)).toBeInTheDocument()
 })
 
 test('the Stripe radio is described by its test-card hint for screen readers', () => {
