@@ -8,7 +8,7 @@
     "node": ">=26"
   },
   "scripts": {
-    "render": "tsx --tsconfig tsconfig.scripts.json scripts/render-posters.ts",
+    "render": "tsx scripts/render-posters.ts",
     "dev": "pnpm render && next dev",
     "build": "pnpm render && next build",
     "preview": "node scripts/serve.mjs",
