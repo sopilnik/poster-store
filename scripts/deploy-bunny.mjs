@@ -188,7 +188,7 @@ async function fetchWithRetry(fetchImpl, url, options, describe, timeoutMs) {
 async function listRemote(env, fetchImpl, dir = '') {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${dir ? `${dir}/` : ''}`
   const response = await fetchWithRetry(fetchImpl, url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`, REQUEST_TIMEOUT_MS)
-  const listing = /** @type {BunnyListingItem[]} */ (/** @type {unknown} */ (await response.json()))
+  const listing = /** @type {BunnyListingItem[]} */ (await response.json())
 
   /** @type {RemoteEntry[]} */
   const entries = []
