@@ -23,9 +23,10 @@ Playwright for the end-to-end suite.
 
 ## Run it
 
-Requirements: Node 26 or newer (`.nvmrc` pins 26, `engines.node` requires it) and pnpm 11 via
-`corepack enable`; `engine-strict` in `.npmrc` aborts the install below the floor instead of only
-warning.
+Requirements: Node 26 or newer (`.nvmrc` pins 26, `engines.node` requires it) and pnpm 11
+(`packageManager` pins 11.26.0). Node 25 and later no longer bundle Corepack, so run
+`npm install -g corepack` and then `corepack enable`, or install pnpm 11 directly. `engine-strict`
+in `.npmrc` aborts the install below the floor instead of only warning.
 
 Copy `.env.example` to `.env.local` before a real build. `SITE_URL` becomes `metadataBase` and every
 canonical, OG and sitemap url; `AUTHOR_URL` is the footer author link.
@@ -79,7 +80,8 @@ The cart and a placed order are held in browser storage, read and written throug
 ### Layout
 
 - `app/` — Next.js App Router routes, layouts and the sitemap/robots generators.
-- `src/catalog` — product, collection, palette and pricing data.
+- `src/catalog` — product, collection, palette, size and pricing data, plus the shop query
+  parsing, filtering and sorting (`query.ts`).
 - `src/posters` — poster templates and the SVG-to-PNG rasteriser.
 - `src/cart` — cart state, storage and totals.
 - `src/checkout` — checkout order schema, limits and storage.
