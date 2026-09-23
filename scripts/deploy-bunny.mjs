@@ -17,24 +17,22 @@ const REQUIRED_VARS = [
 
 const BUNNY_STORAGE_HOST_PATTERN = /^([a-z0-9-]+\.)?storage\.bunnycdn\.com$/
 
-function readEnv() {
+export function readEnv(source = process.env) {
   const env = {}
   for (const name of REQUIRED_VARS) {
-    const value = process.env[name]
+    const value = source[name]
     if (!value) {
-      console.error(`deploy-bunny: missing required environment variable ${name}`)
-      process.exit(1)
+      throw new Error(`missing required environment variable ${name}`)
     }
     env[name] = value
   }
   if (!BUNNY_STORAGE_HOST_PATTERN.test(env.BUNNY_STORAGE_HOST)) {
-    console.error(`deploy-bunny: BUNNY_STORAGE_HOST must be a bunny storage host, got ${env.BUNNY_STORAGE_HOST}`)
-    process.exit(1)
+    throw new Error(`BUNNY_STORAGE_HOST must be a bunny storage host, got ${env.BUNNY_STORAGE_HOST}`)
   }
   return env
 }
 
-async function listFiles(dir) {
+export async function listFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true })
   const files = []
   for (const entry of entries) {
@@ -48,8 +46,8 @@ async function listFiles(dir) {
   return files
 }
 
-function remotePath(file) {
-  return path.relative(OUT_DIR, file).split(path.sep).map(encodeURIComponent).join('/')
+export function remotePath(file, outDir = OUT_DIR) {
+  return path.relative(outDir, file).split(path.sep).map(encodeURIComponent).join('/')
 }
 
 const UPLOAD_RETRIES = 3
@@ -61,9 +59,9 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-async function putFile(env, remote, body) {
+async function putFile(env, remote, body, fetchImpl) {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${remote}`
-  return fetch(url, {
+  return fetchImpl(url, {
     method: 'PUT',
     headers: {
       AccessKey: env.BUNNY_STORAGE_PASSWORD,
@@ -74,15 +72,15 @@ async function putFile(env, remote, body) {
   })
 }
 
-async function uploadFile(env, file) {
-  const remote = remotePath(file)
+export async function uploadFile(env, file, { outDir = OUT_DIR, fetchImpl = fetch } = {}) {
+  const remote = remotePath(file, outDir)
   const body = await readFile(file)
 
   let lastError
   for (let attempt = 1; attempt <= UPLOAD_RETRIES; attempt += 1) {
     let response
     try {
-      response = await putFile(env, remote, body)
+      response = await putFile(env, remote, body, fetchImpl)
     } catch (error) {
       lastError = error
       if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
@@ -98,12 +96,12 @@ async function uploadFile(env, file) {
   throw lastError
 }
 
-async function fetchWithRetry(url, options, describe, timeoutMs) {
+async function fetchWithRetry(fetchImpl, url, options, describe, timeoutMs) {
   let lastError
   for (let attempt = 1; attempt <= UPLOAD_RETRIES; attempt += 1) {
     let response
     try {
-      response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) })
+      response = await fetchImpl(url, { ...options, signal: AbortSignal.timeout(timeoutMs) })
     } catch (error) {
       lastError = error
       if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
@@ -119,21 +117,21 @@ async function fetchWithRetry(url, options, describe, timeoutMs) {
   throw lastError
 }
 
-async function listRemote(env, dir = '') {
+async function listRemote(env, fetchImpl, dir = '') {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${dir ? `${dir}/` : ''}`
-  const response = await fetchWithRetry(url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`, REQUEST_TIMEOUT_MS)
+  const response = await fetchWithRetry(fetchImpl, url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`, REQUEST_TIMEOUT_MS)
   const listing = await response.json()
 
   const entries = []
   for (const item of listing) {
     const entryPath = dir ? `${dir}/${encodeURIComponent(item.ObjectName)}` : encodeURIComponent(item.ObjectName)
     entries.push({ path: entryPath, isDirectory: Boolean(item.IsDirectory) })
-    if (item.IsDirectory) entries.push(...(await listRemote(env, entryPath)))
+    if (item.IsDirectory) entries.push(...(await listRemote(env, fetchImpl, entryPath)))
   }
   return entries
 }
 
-function staleEntries(remoteEntries, localPaths) {
+export function staleEntries(remoteEntries, localPaths) {
   const local = new Set(localPaths)
   const staleFiles = remoteEntries
     .filter(e => !e.isDirectory)
@@ -147,21 +145,21 @@ function staleEntries(remoteEntries, localPaths) {
   return { staleFiles, staleDirs }
 }
 
-async function deleteRemote(env, remote, isDirectory) {
+async function deleteRemote(env, remote, isDirectory, fetchImpl) {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${isDirectory ? `${remote}/` : remote}`
-  await fetchWithRetry(url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `delete for ${remote}`, REQUEST_TIMEOUT_MS)
+  await fetchWithRetry(fetchImpl, url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `delete for ${remote}`, REQUEST_TIMEOUT_MS)
 }
 
-async function removeStale(env, remoteEntries, localPaths) {
+async function removeStale(env, remoteEntries, localPaths, fetchImpl) {
   const { staleFiles, staleDirs } = staleEntries(remoteEntries, localPaths)
-  for (const remote of staleFiles) await deleteRemote(env, remote, false)
-  for (const remote of staleDirs) await deleteRemote(env, remote, true)
+  for (const remote of staleFiles) await deleteRemote(env, remote, false, fetchImpl)
+  for (const remote of staleDirs) await deleteRemote(env, remote, true, fetchImpl)
   return { files: staleFiles.length, dirs: staleDirs.length }
 }
 
-async function purgeCache(env) {
+export async function purgeCache(env, { fetchImpl = fetch } = {}) {
   const url = `https://api.bunny.net/pullzone/${env.BUNNY_PULL_ZONE_ID}/purgeCache`
-  const response = await fetch(url, {
+  const response = await fetchImpl(url, {
     method: 'POST',
     headers: { AccessKey: env.BUNNY_API_KEY },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -171,44 +169,42 @@ async function purgeCache(env) {
   }
 }
 
-export async function main() {
-  const env = readEnv()
-
-  const outStat = await stat(OUT_DIR).catch(() => null)
+export async function main({ env, fetchImpl = fetch, outDir = OUT_DIR, log = console.log }) {
+  const outStat = await stat(outDir).catch(() => null)
   if (!outStat || !outStat.isDirectory()) {
-    console.error(`deploy-bunny: build output not found at ${OUT_DIR}`)
-    process.exit(1)
+    throw new Error(`build output not found at ${outDir}`)
   }
 
-  const files = await listFiles(OUT_DIR)
-  if (!files.some(file => remotePath(file) === 'index.html')) {
-    console.error('deploy-bunny: out/ has no index.html, refusing to deploy')
-    process.exit(1)
+  const files = await listFiles(outDir)
+  if (!files.some(file => remotePath(file, outDir) === 'index.html')) {
+    throw new Error('out/ has no index.html, refusing to deploy')
   }
   const nonHtmlFiles = files.filter(file => path.extname(file) !== '.html')
   const htmlFiles = files.filter(file => path.extname(file) === '.html')
   const orderedFiles = [...nonHtmlFiles, ...htmlFiles]
 
-  const remoteEntries = await listRemote(env)
+  const remoteEntries = await listRemote(env, fetchImpl)
 
   let totalBytes = 0
   for (const file of orderedFiles) {
-    totalBytes += await uploadFile(env, file)
+    totalBytes += await uploadFile(env, file, { outDir, fetchImpl })
   }
 
-  const removed = await removeStale(env, remoteEntries, orderedFiles.map(remotePath))
+  const removed = await removeStale(env, remoteEntries, orderedFiles.map(file => remotePath(file, outDir)), fetchImpl)
 
-  await purgeCache(env)
+  await purgeCache(env, { fetchImpl })
 
-  console.log(
+  log(
     `deploy-bunny: uploaded ${files.length} file(s), ${totalBytes} byte(s), ` +
       `removed ${removed.files} file(s) and ${removed.dirs} empty directory(ies), cache purged`
   )
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error) => {
-    console.error(`deploy-bunny: ${error.message}`)
-    process.exit(1)
-  })
+  Promise.resolve()
+    .then(() => main({ env: readEnv() }))
+    .catch((error) => {
+      console.error(`deploy-bunny: ${error.message}`)
+      process.exit(1)
+    })
 }

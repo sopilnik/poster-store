@@ -7,10 +7,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.ts', 'app/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.ts', 'app/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,mjs}'],
     coverage: {
       provider: 'v8',
-      include: ['src/**', 'functions/**', 'app/**'],
+      include: ['src/**', 'functions/**', 'app/**', 'scripts/**'],
       exclude: ['**/*.test.*', '**/*.md', 'src/posters/__golden__/**'],
       reporter: ['text', 'lcov'],
     },
