@@ -23,9 +23,6 @@ updates:
     cooldown:
       default-days: 3
     groups:
-      minor-updates:
-        update-types:
-          - "minor"
-      patch-updates:
-        update-types:
-          - "patch"
+      actions:
+        patterns:
+          - "*"
