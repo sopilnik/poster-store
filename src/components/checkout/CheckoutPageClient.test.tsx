@@ -209,6 +209,60 @@ test('a checkout session response with a valid https url clears the cart and nav
   expect(loadOrder()).toMatchObject({ payment: 'stripe', paymentStatus: 'pending' })
 })
 
+test('the redirect notice replaces the empty-cart view while the browser leaves for Stripe', async () => {
+  const assignSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: assignSpy })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
+  )
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  const { rerender } = render(
+    <CartContext.Provider value={contextValue({ dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  await fillCheckoutForm(userEvent)
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
+
+  await waitFor(() => {
+    expect(assignSpy).toHaveBeenCalled()
+  })
+
+  rerender(
+    <CartContext.Provider value={contextValue({ dispatch, items: [] })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  expect(screen.queryByText('Your cart is empty.')).toBeNull()
+  expect(screen.getByRole('status')).toHaveTextContent('Taking you to Stripe…')
+})
+
+test('a page restored from the back-forward cache reloads', async () => {
+  const reloadSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  const persistedEvent = new Event('pageshow')
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
+  window.dispatchEvent(persistedEvent)
+  expect(reloadSpy).toHaveBeenCalledTimes(1)
+
+  const freshEvent = new Event('pageshow')
+  Object.defineProperty(freshEvent, 'persisted', { value: false })
+  window.dispatchEvent(freshEvent)
+  expect(reloadSpy).toHaveBeenCalledTimes(1)
+})
+
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
   const order = makeOrder()
   saveOrder(order)

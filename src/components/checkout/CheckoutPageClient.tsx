@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { toast } from 'sonner'
 import { useCart } from '@/cart/CartProvider'
 import { priceLines } from '@/cart/totals'
@@ -28,6 +28,7 @@ export function CheckoutPageClient() {
   const router = useRouter()
   const lines = priceLines(items)
   const [{ checked, placed }, markChecked] = useReducer(checkReducer, { checked: false, placed: false })
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     if (!hydrated) return
@@ -45,7 +46,22 @@ export function CheckoutPageClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated])
 
+  useEffect(() => {
+    // A buyer who comes back from Stripe with the back button may get this page from the
+    // browser's back-forward cache with the notice still on screen; reloading runs the mount
+    // logic again, which restores the pending order into the cart.
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) window.location.reload()
+    }
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
+
   if (!hydrated || !checked) return null
+
+  if (redirecting) {
+    return <p role="status" className="mt-6 text-sm text-muted-foreground">Taking you to Stripe…</p>
+  }
 
   if (placed) {
     return (
@@ -97,6 +113,7 @@ export function CheckoutPageClient() {
         if (!target || !isStripeUrl(target)) {
           throw new Error('checkout session response did not include a Stripe url')
         }
+        setRedirecting(true)
         dispatch({ type: 'clear' })
         window.location.assign(target.href)
       } catch {
