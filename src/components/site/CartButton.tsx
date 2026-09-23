@@ -18,7 +18,7 @@ export function CartButton() {
       onClick={open}
       className="relative after:absolute after:-inset-y-1.5 after:-inset-x-px"
     >
-      <ShoppingCart aria-hidden="true" />
+      <ShoppingCart aria-hidden="true" className="size-5" />
       {hydrated && n > 0 ? (
         <Badge
           className="absolute top-0 right-0 h-4 min-w-4 -translate-y-[40%] translate-x-[40%] justify-center px-1 text-[11px] leading-none"

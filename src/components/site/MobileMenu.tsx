@@ -25,7 +25,7 @@ export function MobileMenu() {
           />
         }
       >
-        <Menu aria-hidden="true" />
+        <Menu aria-hidden="true" className="size-5" />
       </SheetTrigger>
       <SheetContent side="right">
         <SheetHeader>

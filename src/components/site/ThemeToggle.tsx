@@ -24,7 +24,7 @@ export function ThemeToggle() {
       <div aria-hidden="true" className="flex items-center gap-0.5 rounded-md border border-input p-0.5">
         {OPTIONS.map(({ value, Icon }) => (
           <span key={value} className="flex size-8 items-center justify-center text-muted-foreground">
-            <Icon aria-hidden="true" className="size-4" />
+            <Icon aria-hidden="true" className="size-5" />
           </span>
         ))}
       </div>
@@ -40,7 +40,7 @@ export function ThemeToggle() {
     >
       {OPTIONS.map(({ value, label, Icon }) => (
         <Radio.Root key={value} value={value} className={segmentClass}>
-          <Icon aria-hidden="true" className="size-4" />
+          <Icon aria-hidden="true" className="size-5" />
           <span className="sr-only">{label}</span>
         </Radio.Root>
       ))}

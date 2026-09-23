@@ -15,7 +15,7 @@ export function Header() {
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
           <NavLinks linkClassName="hover:text-primary" />
         </nav>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <CartButton />
           <MobileMenu />
