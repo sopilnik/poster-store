@@ -99,6 +99,27 @@ Repository secrets (names only, never their values):
   by the deploy-function job, which checks all four are present and fails, naming the first one
   missing, before it deploys.
 
+### Deployment headers
+
+The bunny pull zone carries one edge rule, "Security response headers", matching every request with
+seven **Set Response Header** actions:
+
+```
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://checkout.stripe.com; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; upgrade-insecure-requests
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=()
+Cross-Origin-Opener-Policy: same-origin
+X-Robots-Tag: noindex
+```
+
+`connect-src` gains the checkout function's origin once card payments are enabled
+(`NEXT_PUBLIC_CHECKOUT_API` set). `X-Robots-Tag: noindex` is deliberate: this is a demo storefront and
+stays out of Google and Yandex. `scripts/serve.mjs` serves the same set, minus
+`Strict-Transport-Security` and the CSP's `upgrade-insecure-requests` directive — both only mean
+something over https — so `tests/e2e/headers.spec.ts` can check the policy end to end.
+
 ## Licence
 
 MIT for the store's own code, see `LICENSE`. `src/components/ui/` is adapted from shadcn/ui (MIT).

@@ -28,6 +28,21 @@ const types = {
   '.webmanifest': 'application/manifest+json',
 }
 
+// The bunny edge rule in docs/deploy/demo-1-launch.md sets seven response headers; this preview
+// serves the same set except Strict-Transport-Security and the CSP's upgrade-insecure-requests
+// directive, both of which only mean something over https and this preview is plain http.
+const securityHeaders = {
+  'content-security-policy':
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
+    "img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://checkout.stripe.com; " +
+    "form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
+  'x-content-type-options': 'nosniff',
+  'referrer-policy': 'strict-origin-when-cross-origin',
+  'permissions-policy': 'geolocation=(), camera=(), microphone=(), payment=(), usb=()',
+  'cross-origin-opener-policy': 'same-origin',
+  'x-robots-tag': 'noindex',
+}
+
 async function resolve(urlPath) {
   let decoded
   try {
@@ -55,10 +70,15 @@ const server = createServer(async (req, res) => {
   const { file, status } = await resolve(req.url ?? '/')
   const body = await readFile(file).catch(() => null)
   if (!body) {
-    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' })
+    res.writeHead(404, {
+      ...securityHeaders,
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+    })
     return res.end('not found')
   }
   res.writeHead(status, {
+    ...securityHeaders,
     'content-type': types[path.extname(file)] ?? 'application/octet-stream',
     'cache-control': 'no-store',
   })
