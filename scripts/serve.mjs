@@ -36,7 +36,7 @@ const types = {
 const securityHeaders = {
   'content-security-policy':
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
-    "img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src https://checkout.stripe.com; " +
+    "img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-src 'none'; " +
     "form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'strict-origin-when-cross-origin',
