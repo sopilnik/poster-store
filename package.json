@@ -13,7 +13,7 @@
     "build": "pnpm render && next build",
     "preview": "node scripts/serve.mjs",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "next typegen && tsc --noEmit && tsc -p tsconfig.functions.json --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && tsc -p tsconfig.functions.json --noEmit && tsc -p tsconfig.scripts.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "pretest:e2e": "pnpm build",

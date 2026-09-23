@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "allowJs": true, "checkJs": true, "lib": ["esnext"], "types": ["node"] },
+  "include": ["scripts/**/*.mjs"],
+  "exclude": ["scripts/**/*.test.mjs", "node_modules"]
+}

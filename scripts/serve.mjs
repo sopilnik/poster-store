@@ -1,3 +1,4 @@
+// @ts-check
 import { createServer } from 'node:http'
 import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
@@ -12,6 +13,7 @@ try {
   process.exit(1)
 }
 
+/** @type {Record<string, string>} */
 const types = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css',
@@ -43,10 +45,14 @@ const securityHeaders = {
   'x-robots-tag': 'noindex',
 }
 
+/**
+ * @param {string} urlPath
+ * @returns {Promise<{ file: string, status: number }>}
+ */
 async function resolve(urlPath) {
   let decoded
   try {
-    decoded = decodeURIComponent(urlPath.split('?')[0])
+    decoded = decodeURIComponent(/** @type {string} */ (urlPath.split('?')[0]))
   } catch {
     return { file: path.join(root, '404.html'), status: 404 }
   }
@@ -85,7 +91,7 @@ const server = createServer(async (req, res) => {
   res.end(body)
 })
 
-server.on('error', (error) => {
+server.on('error', (/** @type {NodeJS.ErrnoException} */ error) => {
   if (error.code === 'EADDRINUSE') {
     console.error(`serve: port ${port} is in use`)
   } else {
