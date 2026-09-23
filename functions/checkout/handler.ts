@@ -143,8 +143,9 @@ export async function handle(request: Request, env: Env, makeStripe: (key: strin
   const url = new URL(request.url)
   const headers = { 'cache-control': 'no-store', ...corsHeaders(request, env) }
 
-  const isSessionRoute = url.pathname.endsWith('/checkout/session')
-  const isWebhookRoute = url.pathname.endsWith('/stripe/webhook')
+  const pathname = url.pathname.replace(/\/+$/, '')
+  const isSessionRoute = pathname === '/checkout/session'
+  const isWebhookRoute = pathname === '/stripe/webhook'
   if (!isSessionRoute && !isWebhookRoute) return jsonResponse(404, { error: 'Not found' }, headers)
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })

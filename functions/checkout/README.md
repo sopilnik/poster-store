@@ -15,6 +15,9 @@ need only a new entry file next to `worker.ts`.
   request body is capped at 64 KB. There is no database behind this demo, so the log line is where a
   real integration would start fulfilment.
 
+The three routes are matched exactly at the root of the Worker's origin (a trailing slash is tolerated,
+anything else is a 404), so the store's `NEXT_PUBLIC_CHECKOUT_API` must be an origin without a path.
+
 Prices, shipping and the idempotency key are computed on the server from the same catalog modules the
 storefront pages use, so a tampered request cannot change what Stripe charges.
 

@@ -325,6 +325,30 @@ test('an unknown path returns 404', async () => {
   expect(response.headers.get('x-content-type-options')).toBe('nosniff')
 })
 
+test('a path with a prefix before a known route returns 404', async () => {
+  const request = new Request('https://api.example.test/anything/checkout/session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(VALID_BODY),
+  })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(404)
+})
+
+test('a trailing slash on a known route is tolerated', async () => {
+  const request = new Request('https://api.example.test/checkout/session/?id=cs_test_1', { method: 'GET' })
+  const response = await handle(request, ENV, makeStripeFactory())
+  expect(response.status).toBe(200)
+  await expect(response.json()).resolves.toEqual({
+    id: 'cs_test_1',
+    status: 'complete',
+    payment_status: 'paid',
+    amount_total: 3800,
+    currency: 'usd',
+    orderId: 'FL-AB12C3',
+  })
+})
+
 test('an unsupported method on the session route returns 405', async () => {
   const request = new Request('https://api.example.test/checkout/session', { method: 'DELETE' })
   const response = await handle(request, ENV, makeStripeFactory())
