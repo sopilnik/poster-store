@@ -1,17 +1,13 @@
 import { render, screen, waitFor } from '@testing-library/react'
-import { loadOrder, saveOrder } from '@/checkout/storage'
+import { clearOrder, loadOrder, saveOrder } from '@/checkout/storage'
 import { SuccessView } from './SuccessView'
 import { makeOrder } from './test-helpers'
 
 vi.mock('@/lib/site', () => ({ CHECKOUT_API: 'http://127.0.0.1:8787', hasCheckoutApi: () => true }))
 
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
 test('the no-order branch still renders a heading', async () => {
   window.history.replaceState(null, '', '/checkout/success/')
-  window.sessionStorage.removeItem('formline.order')
+  clearOrder()
   render(<SuccessView />)
 
   expect(await screen.findByRole('heading', { level: 1, name: 'Order confirmation' })).toBeInTheDocument()

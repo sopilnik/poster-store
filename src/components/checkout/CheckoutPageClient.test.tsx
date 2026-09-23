@@ -46,7 +46,6 @@ beforeEach(() => {
   window.sessionStorage.clear()
   pushMock.mockClear()
   vi.mocked(toast).mockClear()
-  vi.unstubAllGlobals()
 })
 
 test('a rejected checkout session request keeps the form and shows the toast', async () => {

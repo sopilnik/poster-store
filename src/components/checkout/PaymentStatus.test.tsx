@@ -8,10 +8,6 @@ beforeEach(() => {
   vi.mocked(hasCheckoutApi).mockReturnValue(true)
 })
 
-afterEach(() => {
-  vi.unstubAllGlobals()
-})
-
 test('renders nothing when there is no session id', () => {
   const { container } = render(<PaymentStatus sessionId={null} orderId="FL-AAAAAA" />)
   expect(container).toBeEmptyDOMElement()

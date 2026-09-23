@@ -5,6 +5,7 @@ export default defineConfig({
   resolve: { alias: { '@': `${import.meta.dirname}/src` } },
   test: {
     globals: true,
+    unstubGlobals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}', 'functions/**/*.test.ts', 'app/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,mjs}'],
