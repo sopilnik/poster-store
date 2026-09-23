@@ -31,6 +31,7 @@ export const metadata: Metadata = {
   title: { default: BRAND, template: `%s · ${BRAND}` },
   description: 'Posters made of geometry and type. A demo store.',
   openGraph: { images: ['/og/default.png'] },
+  robots: { index: false, follow: true },
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {

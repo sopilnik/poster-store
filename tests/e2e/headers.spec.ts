@@ -11,3 +11,14 @@ test('the response carries the documented security headers', async ({ request })
   expect(headers['cross-origin-opener-policy']).toBe('same-origin')
   expect(headers['x-robots-tag']).toBe('noindex')
 })
+
+test('every page carries the noindex meta tag, matching the edge header', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+
+  await page.goto('/products/low-tide/')
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+
+  await page.goto('/shop/')
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/)
+})
