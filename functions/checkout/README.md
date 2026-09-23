@@ -69,6 +69,15 @@ replayed), receipt emails, refund handling, and live keys behind their own revie
 ## Abuse limits
 
 Request bodies are capped in code (8 KB on `/checkout/session`, 64 KB on `/stripe/webhook`, see "What
-it does" above). Request rate is limited by one Cloudflare rate-limiting rule on `/checkout/session`,
-set in the dashboard — an owner step; the exact numbers depend on the plan's rule form. `/stripe/webhook`
-is never rate-limited, because Stripe retries from many addresses.
+it does" above). The rest is done at Cloudflare's edge, in front of the Worker, so a blocked request
+never counts against the account's daily Worker quota — three rules on the zone, set in the dashboard:
+
+- a rate-limiting rule on `/checkout/session` (the Free plan's single rule: per address, a 10-second
+  window, a 10-second block; the request count is the tightest the form allows);
+- a custom rule that blocks every request to the Worker's hostname whose path is not one of the two
+  routes above or whose method is not `GET`, `POST` or `OPTIONS`;
+- a custom rule that blocks `POST /stripe/webhook` from any address outside Stripe's published webhook
+  list (`https://stripe.com/files/ips/ips_webhooks.txt`; Stripe announces changes seven days ahead).
+
+`/stripe/webhook` is never rate-limited, because Stripe retries from many addresses; the signature
+check in the Worker stays as the second lock behind the address list.
