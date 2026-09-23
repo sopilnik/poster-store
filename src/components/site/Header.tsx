@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { COLLECTIONS } from '@/catalog/collections'
 import { BRAND } from '@/lib/site'
 import { ThemeToggle } from './ThemeToggle'
 import { CartButton } from './CartButton'
 import { MobileMenu } from './MobileMenu'
+import { NavLinks } from './NavLinks'
 
 export function Header() {
   return (
@@ -13,14 +13,7 @@ export function Header() {
           {BRAND}
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
-          <Link href="/shop/" className="hover:text-primary">
-            Shop
-          </Link>
-          {COLLECTIONS.map(c => (
-            <Link key={c.slug} href={`/collections/${c.slug}/`} className="hover:text-primary">
-              {c.name}
-            </Link>
-          ))}
+          <NavLinks linkClassName="hover:text-primary" />
         </nav>
         <div className="flex items-center gap-1">
           <ThemeToggle />
