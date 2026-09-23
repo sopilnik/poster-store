@@ -28,7 +28,7 @@ const types = {
   '.webmanifest': 'application/manifest+json',
 }
 
-// The bunny edge rule in docs/deploy/demo-1-launch.md sets seven response headers; this preview
+// The bunny edge rule (README, "Deployment headers") sets seven response headers; this preview
 // serves the same set except Strict-Transport-Security and the CSP's upgrade-insecure-requests
 // directive, both of which only mean something over https and this preview is plain http.
 const securityHeaders = {
