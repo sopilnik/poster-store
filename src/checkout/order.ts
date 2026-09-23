@@ -16,12 +16,26 @@ export type Order = {
 }
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+const ID_LENGTH = 6
+// A byte at or above this limit would make the first four alphabet characters more likely than the rest.
+const UNBIASED_LIMIT = 256 - (256 % ALPHABET.length)
 
 export function makeOrderId(random: (n: number) => Uint8Array = n => globalThis.crypto.getRandomValues(new Uint8Array(n))): string {
-  const bytes = random(6)
   let suffix = ''
-  for (const byte of bytes) {
-    suffix += ALPHABET.charAt(byte % ALPHABET.length)
+  while (suffix.length < ID_LENGTH) {
+    const bytes = random(ID_LENGTH * 2)
+    if (bytes.length === 0) {
+      throw new Error('makeOrderId: the byte source returned no bytes')
+    }
+    for (const byte of bytes) {
+      if (suffix.length === ID_LENGTH) {
+        break
+      }
+      if (byte >= UNBIASED_LIMIT) {
+        continue
+      }
+      suffix += ALPHABET.charAt(byte % ALPHABET.length)
+    }
   }
   return `FL-${suffix}`
 }

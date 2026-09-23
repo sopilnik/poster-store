@@ -8,9 +8,20 @@ test('makeOrderId returns FL- plus six characters from a fixed byte source', () 
   expect(id).toBe('FL-ABCDEF')
 })
 
-test('makeOrderId wraps bytes past the alphabet length', () => {
+test('makeOrderId skips a byte at or above 252 and draws again', () => {
   const id = makeOrderId(() => new Uint8Array([35, 36, 71, 72, 255, 0]))
-  expect(id).toBe('FL-9A9ADA')
+  expect(id).toBe('FL-9A9AA9')
+})
+
+test('makeOrderId retries a source that returns only biased bytes', () => {
+  let calls = 0
+  const source = () => {
+    calls += 1
+    return calls === 1 ? new Uint8Array(12).fill(255) : new Uint8Array([0, 1, 2, 3, 4, 5])
+  }
+  const id = makeOrderId(source)
+  expect(id).toBe('FL-ABCDEF')
+  expect(calls).toBe(2)
 })
 
 const INPUT: CheckoutInput = {
