@@ -67,7 +67,7 @@ Regenerates the golden poster PNG after an intended change to the rasteriser or 
 Lighthouse, against `pnpm preview`:
 
 ```bash
-npx lighthouse http://localhost:4321/ --preset=desktop --chrome-flags="--headless=new"
+pnpm dlx lighthouse@13 http://localhost:4321/ --preset=desktop --chrome-flags="--headless"
 ```
 
 ## How it is built
@@ -145,11 +145,11 @@ stays out of Google and Yandex. `scripts/serve.mjs` serves the same set, minus
 `Strict-Transport-Security` and the CSP's `upgrade-insecure-requests` directive — both only mean
 something over https — so `tests/e2e/headers.spec.ts` can check the policy end to end.
 
-## Licence
+## License
 
 MIT for the store's own code, see [LICENSE](LICENSE). `src/components/ui/` is adapted from
 shadcn/ui (MIT). Base UI (MIT). lucide-react (ISC). Inter and Space Grotesk are licensed under the
-SIL Open Font License 1.1, with their licence files kept beside them at `src/fonts/LICENSE.txt` and
+SIL Open Font License 1.1, with their license files kept beside them at `src/fonts/LICENSE.txt` and
 `src/fonts/SpaceGrotesk-OFL.txt`.
 
 Security policy: see [SECURITY.md](SECURITY.md).

@@ -10,5 +10,6 @@ coverage
 .env*
 !.env.example
 .dev.vars
+.wrangler/
 /docs/
 /.playwright-mcp/
