@@ -180,8 +180,23 @@ describe('main', () => {
 })
 
 describe('purgeCache', () => {
-  test('throws when the purge request fails', async () => {
-    const fetchImpl = vi.fn(async () => ({ ok: false, status: 500 }))
-    await expect(purgeCache(ENV, { fetchImpl })).rejects.toThrow(/purge failed/)
+  test('retries a 5xx and succeeds on the next attempt', async () => {
+    const calls = []
+    const fetchImpl = vi.fn(async (url, options) => {
+      calls.push({ url, method: options.method })
+      return calls.length === 1 ? { ok: false, status: 503 } : { ok: true, status: 200 }
+    })
+
+    await expect(purgeCache(ENV, { fetchImpl })).resolves.toBeUndefined()
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+    expect(calls.every(call => call.method === 'POST')).toBe(true)
+  }, 10_000)
+
+  test('a 4xx does not retry and throws', async () => {
+    const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }))
+
+    await expect(purgeCache(ENV, { fetchImpl })).rejects.toThrow(/purge failed \(404\)/)
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
   })
 })

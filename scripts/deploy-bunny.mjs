@@ -252,14 +252,7 @@ async function removeStale(env, remoteEntries, localPaths, fetchImpl) {
  */
 export async function purgeCache(env, { fetchImpl = fetch } = {}) {
   const url = `https://api.bunny.net/pullzone/${env.BUNNY_PULL_ZONE_ID}/purgeCache`
-  const response = await fetchImpl(url, {
-    method: 'POST',
-    headers: { AccessKey: env.BUNNY_API_KEY },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  })
-  if (!response.ok) {
-    throw new Error(`purge failed (${response.status})`)
-  }
+  await fetchWithRetry(fetchImpl, url, { method: 'POST', headers: { AccessKey: env.BUNNY_API_KEY } }, 'purge', REQUEST_TIMEOUT_MS)
 }
 
 /**
