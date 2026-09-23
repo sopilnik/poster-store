@@ -15,6 +15,8 @@ const REQUIRED_VARS = [
   'BUNNY_API_KEY',
 ]
 
+const BUNNY_STORAGE_HOST_PATTERN = /^([a-z0-9-]+\.)?storage\.bunnycdn\.com$/
+
 function readEnv() {
   const env = {}
   for (const name of REQUIRED_VARS) {
@@ -24,6 +26,10 @@ function readEnv() {
       process.exit(1)
     }
     env[name] = value
+  }
+  if (!BUNNY_STORAGE_HOST_PATTERN.test(env.BUNNY_STORAGE_HOST)) {
+    console.error(`deploy-bunny: BUNNY_STORAGE_HOST must be a bunny storage host, got ${env.BUNNY_STORAGE_HOST}`)
+    process.exit(1)
   }
   return env
 }
@@ -48,6 +54,8 @@ function remotePath(file) {
 
 const UPLOAD_RETRIES = 3
 const UPLOAD_RETRY_DELAY_MS = 500
+const UPLOAD_TIMEOUT_MS = 60_000
+const REQUEST_TIMEOUT_MS = 30_000
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -62,6 +70,7 @@ async function putFile(env, remote, body) {
       'Content-Type': 'application/octet-stream',
     },
     body,
+    signal: AbortSignal.timeout(UPLOAD_TIMEOUT_MS),
   })
 }
 
@@ -89,12 +98,12 @@ async function uploadFile(env, file) {
   throw lastError
 }
 
-async function fetchWithRetry(url, options, describe) {
+async function fetchWithRetry(url, options, describe, timeoutMs) {
   let lastError
   for (let attempt = 1; attempt <= UPLOAD_RETRIES; attempt += 1) {
     let response
     try {
-      response = await fetch(url, options)
+      response = await fetch(url, { ...options, signal: AbortSignal.timeout(timeoutMs) })
     } catch (error) {
       lastError = error
       if (attempt < UPLOAD_RETRIES) await sleep(UPLOAD_RETRY_DELAY_MS * attempt)
@@ -112,7 +121,7 @@ async function fetchWithRetry(url, options, describe) {
 
 async function listRemote(env, dir = '') {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${dir ? `${dir}/` : ''}`
-  const response = await fetchWithRetry(url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`)
+  const response = await fetchWithRetry(url, { headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `list for ${dir || '/'}`, REQUEST_TIMEOUT_MS)
   const listing = await response.json()
 
   const entries = []
@@ -140,7 +149,7 @@ function staleEntries(remoteEntries, localPaths) {
 
 async function deleteRemote(env, remote, isDirectory) {
   const url = `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${isDirectory ? `${remote}/` : remote}`
-  await fetchWithRetry(url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `delete for ${remote}`)
+  await fetchWithRetry(url, { method: 'DELETE', headers: { AccessKey: env.BUNNY_STORAGE_PASSWORD } }, `delete for ${remote}`, REQUEST_TIMEOUT_MS)
 }
 
 async function removeStale(env, remoteEntries, localPaths) {
@@ -155,6 +164,7 @@ async function purgeCache(env) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { AccessKey: env.BUNNY_API_KEY },
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
   if (!response.ok) {
     throw new Error(`purge failed (${response.status})`)
