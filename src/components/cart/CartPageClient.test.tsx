@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { CartContext } from '@/cart/CartProvider'
 import type { CartAction, CartContextValue, CartItem } from '@/cart/types'
-import { productBySlug } from '@/catalog/products'
+import { requireProduct } from '@/catalog/products'
 import { variantPriceCents } from '@/catalog/pricing'
 import { FREE_SHIPPING_FROM_CENTS, SHIPPING } from '@/catalog/sizes'
 import { formatCents, formatDollars } from '@/lib/money'
@@ -44,7 +44,7 @@ test('shows the cart lines once hydrated', () => {
   expect(screen.getByRole('link', { name: 'Quiet Hours' })).toBeInTheDocument()
   expect(screen.getByRole('textbox', { name: /Quantity of Quiet Hours/ })).toHaveValue('1')
 
-  const product = productBySlug('quiet-hours')!
+  const product = requireProduct('quiet-hours')
   const lineCents = variantPriceCents(product, 'a2') * 1
   expect(screen.getByText(formatCents(lineCents), { selector: 'p' })).toBeInTheDocument()
 })

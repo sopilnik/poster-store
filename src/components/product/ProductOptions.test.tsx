@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductOptions } from './ProductOptions'
 import { CartContext } from '@/cart/CartProvider'
-import { productBySlug } from '@/catalog/products'
+import { requireProduct } from '@/catalog/products'
 import type { CartAction } from '@/cart/types'
 
 function renderWithCart(dispatch: (action: CartAction) => void) {
@@ -10,7 +10,7 @@ function renderWithCart(dispatch: (action: CartAction) => void) {
     <CartContext.Provider
       value={{ items: [], hydrated: true, isOpen: false, open: vi.fn(), close: vi.fn(), dispatch }}
     >
-      <ProductOptions product={productBySlug('quiet-hours')!} />
+      <ProductOptions product={requireProduct('quiet-hours')} />
     </CartContext.Provider>
   )
 }
