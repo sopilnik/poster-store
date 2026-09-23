@@ -1,4 +1,3 @@
-import { expect, test } from 'vitest'
 import { COLLECTIONS } from '@/catalog/collections'
 import { PRODUCTS } from '@/catalog/products'
 import { SITE_URL } from '@/lib/siteServer'

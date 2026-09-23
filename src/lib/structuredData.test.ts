@@ -1,4 +1,3 @@
-import { expect, test } from 'vitest'
 import { productJsonLd } from './structuredData'
 import { productBySlug } from '@/catalog/products'
 import { absoluteUrl } from './siteServer'
