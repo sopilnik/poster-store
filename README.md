@@ -122,9 +122,9 @@ Repository variables:
 Repository secrets (names only, never their values):
 
 - `BUNNY_STORAGE_PASSWORD`, `BUNNY_API_KEY` — used by the static-site deploy job.
-- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — used
-  by the deploy-function job, which checks all four are present and fails, naming the first one
-  missing, before it deploys.
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` — used by the deploy-function job, which checks both
+  are present and fails, naming the first one missing, before it deploys. The Worker's own Stripe
+  secrets are set directly on Cloudflare (`wrangler secret put`), not held in GitHub.
 
 ### Deployment headers
 
