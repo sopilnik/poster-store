@@ -1,4 +1,4 @@
-import { PRODUCTS, productBySlug } from './products'
+import { PRODUCTS, productBySlug, requireProduct } from './products'
 import { COLLECTIONS } from './collections'
 import { PALETTES } from './palettes'
 test('sixteen products, four per collection, unique slugs', () => {
@@ -20,4 +20,8 @@ test('six featured, each collection mixes at least three templates, representati
     expect(new Set(PRODUCTS.filter(p => p.collection === c.slug).map(p => p.template)).size).toBeGreaterThanOrEqual(3)
     expect(productBySlug(c.representative)?.collection).toBe(c.slug)
   }
+})
+test('requireProduct returns the hero product and throws on an unknown slug', () => {
+  expect(requireProduct('red-corner').slug).toBe('red-corner')
+  expect(() => requireProduct('nope')).toThrow('Unknown product slug: nope')
 })

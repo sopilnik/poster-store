@@ -5,7 +5,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { PosterFrame } from '@/components/product/PosterFrame'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { COLLECTIONS } from '@/catalog/collections'
-import { PRODUCTS, productBySlug } from '@/catalog/products'
+import { PRODUCTS, requireProduct } from '@/catalog/products'
 import { PALETTES } from '@/catalog/palettes'
 import { pageMetadata } from '@/lib/metadata'
 
@@ -15,7 +15,7 @@ export const metadata = pageMetadata({
   path: '/',
 })
 
-const HERO_PRODUCT = productBySlug('red-corner')!
+const HERO_PRODUCT = requireProduct('red-corner')
 const HERO_PALETTE = PALETTES[HERO_PRODUCT.palettes[0]]
 const FEATURED = PRODUCTS.filter(p => p.featured)
 
