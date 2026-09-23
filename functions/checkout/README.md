@@ -30,7 +30,8 @@ pnpm functions:dev
 
 Create a `.dev.vars` file next to `wrangler.toml` with your own test-mode `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET` and a `SITE_URL` (for example `http://localhost:4321`) before running the
-command above; it is git-ignored and must never be committed.
+command above; it is git-ignored and must never be committed. The function refuses anything but a
+test-mode key (`rk_test_` or `sk_test_`).
 
 `wrangler dev` reads `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` and `SITE_URL` from `.dev.vars`; there
 is no fallback, so a missing value fails fast instead of silently pointing at localhost. Point the store

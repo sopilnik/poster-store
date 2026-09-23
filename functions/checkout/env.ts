@@ -13,8 +13,13 @@ function required(raw: RawEnv, name: keyof Env): string {
 }
 
 export function readEnv(raw: RawEnv): Env {
+  const stripeSecretKey = required(raw, 'STRIPE_SECRET_KEY')
+  // The checkout page promises that nothing is charged, so a live key is refused outright.
+  if (!/^(rk|sk)_test_/.test(stripeSecretKey)) {
+    throw new Error('STRIPE_SECRET_KEY must be a test-mode key (rk_test_ or sk_test_)')
+  }
   return {
-    STRIPE_SECRET_KEY: required(raw, 'STRIPE_SECRET_KEY'),
+    STRIPE_SECRET_KEY: stripeSecretKey,
     STRIPE_WEBHOOK_SECRET: required(raw, 'STRIPE_WEBHOOK_SECRET'),
     SITE_URL: required(raw, 'SITE_URL'),
   }

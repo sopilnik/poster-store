@@ -8,7 +8,7 @@ afterEach(() => {
 })
 
 const ENV: Env = {
-  STRIPE_SECRET_KEY: 'test-secret',
+  STRIPE_SECRET_KEY: 'sk_test_secret',
   STRIPE_WEBHOOK_SECRET: 'test-webhook-secret',
   SITE_URL: 'http://localhost:4321',
 }
