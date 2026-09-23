@@ -1,3 +1,8 @@
 name = "formline-checkout"
 main = "functions/checkout/worker.ts"
 compatibility_date = "2026-09-19"
+
+# The Worker must be reachable only on the zone that carries the rate-limit rule, never on workers.dev.
+workers_dev = false
+preview_urls = false
+routes = [{ pattern = "formline-api.sopilnik.dev", custom_domain = true }]
