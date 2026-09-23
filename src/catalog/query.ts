@@ -5,6 +5,7 @@ export type SortId = 'default' | 'price-asc' | 'price-desc' | 'name'
 export type ShopQuery = { collection?: CollectionSlug; sort: SortId; q: string }
 
 const SORT_IDS: SortId[] = ['default', 'price-asc', 'price-desc', 'name']
+export const MAX_QUERY_LENGTH = 100
 
 function isSortId(x: string): x is SortId {
   return SORT_IDS.some(id => id === x)
@@ -17,7 +18,7 @@ export function parseShopQuery(search: string): ShopQuery {
   const qParam = params.get('q')
   const collection = collectionParam ? collectionBySlug(collectionParam)?.slug : undefined
   const sort = sortParam && isSortId(sortParam) ? sortParam : 'default'
-  const q = (qParam ?? '').trim()
+  const q = (qParam ?? '').trim().slice(0, MAX_QUERY_LENGTH)
   return collection ? { collection, sort, q } : { sort, q }
 }
 

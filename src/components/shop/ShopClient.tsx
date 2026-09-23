@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { COLLECTIONS, collectionBySlug } from '@/catalog/collections'
-import { filterProducts, parseShopQuery, serializeShopQuery } from '@/catalog/query'
+import { filterProducts, MAX_QUERY_LENGTH, parseShopQuery, serializeShopQuery } from '@/catalog/query'
 import type { ShopQuery, SortId } from '@/catalog/query'
 import type { CollectionSlug, Product } from '@/catalog/types'
 import { ProductGrid } from '@/components/product/ProductGrid'
@@ -101,6 +101,7 @@ export function ShopClient({ products }: { products: Product[] }) {
             type="search"
             aria-label="Search posters"
             placeholder="Search posters"
+            maxLength={MAX_QUERY_LENGTH}
             value={searchText}
             onChange={e => handleSearchChange(e.target.value)}
             className="max-w-56"

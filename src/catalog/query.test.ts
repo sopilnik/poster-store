@@ -4,6 +4,7 @@ test('parseShopQuery ignores junk and defaults', () => {
   expect(parseShopQuery('')).toEqual({ sort: 'default', q: '' })
   expect(parseShopQuery('?collection=night&sort=name&q=Hush')).toEqual({ collection: 'night', sort: 'name', q: 'Hush' })
   expect(parseShopQuery('?collection=nope&sort=up')).toEqual({ sort: 'default', q: '' })
+  expect(parseShopQuery(`?q=${'a'.repeat(150)}`).q).toHaveLength(100)
 })
 test('serializeShopQuery omits defaults', () => {
   expect(serializeShopQuery({ sort: 'default', q: '' })).toBe('')
