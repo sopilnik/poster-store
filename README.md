@@ -1,5 +1,7 @@
 # Formline
 
+![CI](https://github.com/sopilnik/poster-store/actions/workflows/ci.yml/badge.svg)
+
 A demo poster store built as a static Next.js export. Orders are not real and nothing is charged.
 
 ![Home page](.github/media/home.png)
@@ -8,8 +10,9 @@ A demo poster store built as a static Next.js export. Orders are not real and no
 
 ## What this is
 
-A demo storefront and a work sample: sixteen posters, four palettes, a cart, and a checkout flow that
-ends in a fake order. Nothing here ships a real product or takes a real payment.
+A demo storefront and a work sample: sixteen posters across four collections, six palettes, a cart,
+and a checkout flow that ends in a fake order. Nothing here ships a real product or takes a real
+payment.
 
 ## Stack
 
@@ -19,6 +22,13 @@ generated at build time from SVG templates and rendered to PNG with resvg. Vites
 Playwright for the end-to-end suite.
 
 ## Run it
+
+Requirements: Node 26 or newer (`.nvmrc` pins 26, `engines.node` requires it) and pnpm 11 via
+`corepack enable`; `engine-strict` in `.npmrc` aborts the install below the floor instead of only
+warning.
+
+Copy `.env.example` to `.env.local` before a real build. `SITE_URL` becomes `metadataBase` and every
+canonical, OG and sitemap url; `AUTHOR_URL` is the footer author link.
 
 ### Development
 
@@ -44,7 +54,8 @@ pnpm test:coverage
 pnpm test:e2e
 ```
 
-`pnpm test:e2e` builds the export first, so it always runs against the current code.
+`pnpm test:e2e` builds the export first, so it always runs against the current code. Run
+`pnpm exec playwright install chromium` once before the first `pnpm test:e2e`.
 
 ```bash
 UPDATE_GOLDEN=1 pnpm test src/posters/rasterize.test.ts
@@ -61,17 +72,29 @@ npx lighthouse http://localhost:4321/ --preset=desktop --chrome-flags="--headles
 ## How it is built
 
 Poster templates are inline SVG, rendered to PNG at build time. The site is a fully static export — no
-middleware, no server actions, no `useSearchParams`; shop filters live in the URL through the router
-instead. The cart and a placed order are held in browser storage, read and written through small typed
-helpers.
+middleware, no server actions. Shop filters are written into the URL with `history.replaceState` and
+read back from `location.search` on mount and on `popstate`, in `src/components/shop/ShopClient.tsx`.
+The cart and a placed order are held in browser storage, read and written through small typed helpers.
+
+### Layout
+
+- `app/` — Next.js App Router routes, layouts and the sitemap/robots generators.
+- `src/catalog` — product, collection, palette and pricing data.
+- `src/posters` — poster templates and the SVG-to-PNG rasteriser.
+- `src/cart` — cart state, storage and totals.
+- `src/checkout` — checkout order schema, limits and storage.
+- `src/components` — UI components, including the shop client and the adapted shadcn/ui primitives.
+- `functions/checkout` — the Cloudflare Worker that runs Stripe Checkout outside the static export.
+- `scripts/` — poster rendering, the local preview server and the bunny deploy script.
+- `tests/e2e` — the Playwright end-to-end specs.
 
 ## Card payments
 
 Checkout always offers a demo payment that takes no card details. When a checkout API is
 configured through `NEXT_PUBLIC_CHECKOUT_API`, a second option opens a real Stripe Checkout
 session in test mode, using Stripe's own test card. That function is not part of the static
-export — it lives in `functions/checkout/`, with its own README covering how to run it locally
-and what deploying it needs.
+export — it lives in [`functions/checkout/`](functions/checkout/README.md), with its own README
+covering how to run it locally and what deploying it needs.
 
 ## Deployment
 
@@ -122,7 +145,9 @@ something over https — so `tests/e2e/headers.spec.ts` can check the policy end
 
 ## Licence
 
-MIT for the store's own code, see `LICENSE`. `src/components/ui/` is adapted from shadcn/ui (MIT).
-Base UI (MIT). lucide-react (ISC). Inter and Space Grotesk are licensed under the SIL Open Font
-License 1.1, with their licence files kept beside them at `src/fonts/LICENSE.txt` and
+MIT for the store's own code, see [LICENSE](LICENSE). `src/components/ui/` is adapted from
+shadcn/ui (MIT). Base UI (MIT). lucide-react (ISC). Inter and Space Grotesk are licensed under the
+SIL Open Font License 1.1, with their licence files kept beside them at `src/fonts/LICENSE.txt` and
 `src/fonts/SpaceGrotesk-OFL.txt`.
+
+Security policy: see [SECURITY.md](SECURITY.md).
