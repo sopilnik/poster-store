@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { CartContext } from '@/cart/CartProvider'
@@ -242,7 +242,71 @@ test('the redirect notice replaces the empty-cart view while the browser leaves 
   expect(screen.getByRole('status')).toHaveTextContent('Taking you to Stripe…')
 })
 
-test('a page restored from the back-forward cache reloads', async () => {
+test('the redirect notice goes away when the page is restored from the cache', async () => {
+  const assignSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: assignSpy })
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
+  )
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  const { rerender } = render(
+    <CartContext.Provider value={contextValue({ dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  await fillCheckoutForm(userEvent)
+  await userEvent.click(screen.getByRole('radio', { name: /card via stripe/i }))
+
+  await userEvent.click(screen.getByRole('button', { name: /pay with card/i }))
+
+  await waitFor(() => {
+    expect(assignSpy).toHaveBeenCalled()
+  })
+
+  rerender(
+    <CartContext.Provider value={contextValue({ dispatch, items: [] })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  expect(screen.getByRole('status')).toHaveTextContent('Taking you to Stripe…')
+
+  const persistedEvent = new Event('pageshow')
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
+  act(() => {
+    window.dispatchEvent(persistedEvent)
+  })
+
+  expect(screen.queryByRole('status')).toBeNull()
+})
+
+test('a page restored from the back-forward cache puts the pending order back into the cart', async () => {
+  const reloadSpy = vi.fn()
+  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
+  const dispatch = vi.fn<(action: CartAction) => void>()
+  render(
+    <CartContext.Provider value={contextValue({ items: [], dispatch })}>
+      <CheckoutPageClient />
+    </CartContext.Provider>
+  )
+
+  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+  saveOrder(order)
+
+  const persistedEvent = new Event('pageshow')
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
+  act(() => {
+    window.dispatchEvent(persistedEvent)
+  })
+
+  expect(dispatch).toHaveBeenCalledWith({ type: 'replace', items: order.items })
+  expect(loadOrder()).toBeNull()
+  expect(reloadSpy).not.toHaveBeenCalled()
+})
+
+test('a page restored from the back-forward cache with items in the cart changes nothing', async () => {
   const reloadSpy = vi.fn()
   vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
   const dispatch = vi.fn<(action: CartAction) => void>()
@@ -254,13 +318,12 @@ test('a page restored from the back-forward cache reloads', async () => {
 
   const persistedEvent = new Event('pageshow')
   Object.defineProperty(persistedEvent, 'persisted', { value: true })
-  window.dispatchEvent(persistedEvent)
-  expect(reloadSpy).toHaveBeenCalledTimes(1)
+  act(() => {
+    window.dispatchEvent(persistedEvent)
+  })
 
-  const freshEvent = new Event('pageshow')
-  Object.defineProperty(freshEvent, 'persisted', { value: false })
-  window.dispatchEvent(freshEvent)
-  expect(reloadSpy).toHaveBeenCalledTimes(1)
+  expect(dispatch).not.toHaveBeenCalledWith({ type: 'replace', items: expect.anything() })
+  expect(reloadSpy).not.toHaveBeenCalled()
 })
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {

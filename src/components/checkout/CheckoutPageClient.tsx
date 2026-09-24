@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useReducer, useState } from 'react'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import { toast } from 'sonner'
 import { useCart } from '@/cart/CartProvider'
 import { priceLines } from '@/cart/totals'
@@ -30,15 +30,18 @@ export function CheckoutPageClient() {
   const [{ checked, placed }, markChecked] = useReducer(checkReducer, { checked: false, placed: false })
   const [redirecting, setRedirecting] = useState(false)
 
+  const restorePendingOrder = useCallback((): boolean => {
+    if (items.length !== 0) return false
+    const stored = loadOrder()
+    if (stored?.paymentStatus !== 'pending') return false
+    dispatch({ type: 'replace', items: stored.items })
+    clearOrder()
+    return true
+  }, [items, dispatch])
+
   useEffect(() => {
     if (!hydrated) return
-    if (items.length === 0) {
-      const stored = loadOrder()
-      if (stored?.paymentStatus === 'pending') {
-        dispatch({ type: 'replace', items: stored.items })
-        clearOrder()
-      }
-    }
+    restorePendingOrder()
     markChecked(lines.length === 0 ? loadOrder() !== null : false)
     // The cart at mount time decides whether a pending order is restored and whether the cart is
     // already placed; both are read once, right after hydration, and do not need to re-run when
@@ -47,15 +50,18 @@ export function CheckoutPageClient() {
   }, [hydrated])
 
   useEffect(() => {
-    // A buyer who comes back from Stripe with the back button may get this page from the
-    // browser's back-forward cache with the notice still on screen; reloading runs the mount
-    // logic again, which restores the pending order into the cart.
+    // A buyer who comes back from Stripe with the Back button gets this page from the browser's
+    // back-forward cache exactly as it was left — the redirect notice on screen and the cart
+    // already cleared; restoring in place avoids a navigation, which Chrome refused with an
+    // error page when it was tried from inside the restore.
     function handlePageShow(event: PageTransitionEvent) {
-      if (event.persisted) window.location.reload()
+      if (!event.persisted) return
+      setRedirecting(false)
+      restorePendingOrder()
     }
     window.addEventListener('pageshow', handlePageShow)
     return () => window.removeEventListener('pageshow', handlePageShow)
-  }, [])
+  }, [restorePendingOrder])
 
   if (!hydrated || !checked) return null
 
