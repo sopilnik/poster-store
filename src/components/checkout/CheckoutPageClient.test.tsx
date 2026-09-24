@@ -316,6 +316,9 @@ test('a page restored from the back-forward cache with items in the cart changes
     </CartContext.Provider>
   )
 
+  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+  saveOrder(order)
+
   const persistedEvent = new Event('pageshow')
   Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
@@ -324,6 +327,7 @@ test('a page restored from the back-forward cache with items in the cart changes
 
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'replace', items: expect.anything() })
   expect(reloadSpy).not.toHaveBeenCalled()
+  expect(loadOrder()).toEqual(order)
 })
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
