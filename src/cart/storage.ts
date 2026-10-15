@@ -7,15 +7,21 @@ export const CART_KEY = 'formline.cart.v1'
 type StoredEntry = { sku?: unknown; qty?: unknown }
 
 function readEntry(entry: unknown): CartItem | null {
-  if (!entry || typeof entry !== 'object') return null
+  if (!entry || typeof entry !== 'object') {
+    return null
+  }
 
   const { sku, qty } = entry as StoredEntry
 
-  if (typeof sku !== 'string') return null
+  if (typeof sku !== 'string') {
+    return null
+  }
 
   const variant = parseSku(sku)
 
-  if (!variant) return null
+  if (!variant) {
+    return null
+  }
 
   return { sku, ...variant, qty: clampQty(Math.trunc(Number(qty)) || 1) }
 }
@@ -26,7 +32,9 @@ function mergeEntries(entries: unknown[]): CartItem[] {
   for (const entry of entries) {
     const item = readEntry(entry)
 
-    if (!item) continue
+    if (!item) {
+      continue
+    }
 
     const existing = byKey.get(item.sku)
 
@@ -37,11 +45,16 @@ function mergeEntries(entries: unknown[]): CartItem[] {
 }
 
 export function loadCart(): CartItem[] {
-  if (typeof window === 'undefined') return []
+  if (typeof window === 'undefined') {
+    return []
+  }
+
   try {
     const raw = window.localStorage.getItem(CART_KEY)
 
-    if (!raw) return []
+    if (!raw) {
+      return []
+    }
 
     const parsed: unknown = JSON.parse(raw)
 
@@ -52,7 +65,10 @@ export function loadCart(): CartItem[] {
 }
 
 export function saveCart(items: CartItem[]): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    return
+  }
+
   try {
     window.localStorage.setItem(CART_KEY, JSON.stringify(items))
   } catch {

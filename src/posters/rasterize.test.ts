@@ -16,6 +16,7 @@ test('rasterised text poster matches the golden PNG', () => {
     mkdirSync(new URL('./__golden__/', import.meta.url), { recursive: true })
     writeFileSync(golden, png)
   }
+
   expect(existsSync(golden)).toBe(true)
 
   const same = Buffer.compare(png, readFileSync(golden)) === 0
@@ -24,5 +25,6 @@ test('rasterised text poster matches the golden PNG', () => {
     mkdirSync(join(process.cwd(), 'test-results'), { recursive: true })
     writeFileSync(actualPath, png)
   }
+
   expect(same, `rendered PNG differs from the golden; see ${actualPath} (golden: ${golden.pathname})`).toBe(true)
 })

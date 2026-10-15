@@ -76,7 +76,9 @@ function CountryField({ control }: { control: Control<CheckoutInput> }) {
         items={COUNTRY_ITEMS}
         value={field.value}
         onValueChange={value => {
-          if (typeof value === 'string') field.onChange(value as CheckoutInput['country'])
+          if (typeof value === 'string') {
+            field.onChange(value as CheckoutInput['country'])
+          }
         }}
       >
         <SelectTrigger aria-label="Country" aria-describedby="country-hint">

@@ -71,6 +71,7 @@ test('renders the paid status and calls onPaid when the reply names this order',
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-BBBBBB" onPaid={onPaid} />)
 
   expect(await screen.findByText('Paid (test mode) · $12.00')).toBeInTheDocument()
+
   await waitFor(() => {
     expect(onPaid).toHaveBeenCalledTimes(1)
   })
@@ -113,6 +114,7 @@ test('renders "Payment status unavailable" when fetch rejects', async () => {
       throw new Error('network down')
     })
   )
+
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" />)
 
   expect(await screen.findByText('Payment status unavailable')).toBeInTheDocument()

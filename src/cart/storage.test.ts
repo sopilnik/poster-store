@@ -99,9 +99,11 @@ test('a throwing localStorage.getItem yields an empty cart and saveCart still do
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked')
   })
+
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('blocked')
   })
+
   expect(loadCart()).toEqual([])
   expect(() =>
     saveCart([{ sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 }])

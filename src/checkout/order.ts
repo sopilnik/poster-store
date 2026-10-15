@@ -29,6 +29,7 @@ export function makeOrderId(random: (n: number) => Uint8Array = n => globalThis.
     if (bytes.length === 0) {
       throw new Error('makeOrderId: the byte source returned no bytes')
     }
+
     for (const byte of bytes) {
       if (suffix.length === ID_LENGTH) {
         break
@@ -36,6 +37,7 @@ export function makeOrderId(random: (n: number) => Uint8Array = n => globalThis.
       if (byte >= UNBIASED_LIMIT) {
         continue
       }
+
       suffix += ALPHABET.charAt(byte % ALPHABET.length)
     }
   }

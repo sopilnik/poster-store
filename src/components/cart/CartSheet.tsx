@@ -22,7 +22,9 @@ export function CartSheet() {
     <Sheet
       open={isOpen}
       onOpenChange={next => {
-        if (!next) close()
+        if (!next) {
+          close()
+        }
       }}
     >
       <SheetContent side="right">

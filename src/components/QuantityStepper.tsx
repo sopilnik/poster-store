@@ -33,7 +33,9 @@ export function QuantityStepper({
   }
 
   function handleChange(raw: string) {
-    if (!/^\d*$/.test(raw)) return
+    if (!/^\d*$/.test(raw)) {
+      return
+    }
 
     const n = Number(raw)
 
@@ -48,6 +50,7 @@ export function QuantityStepper({
 
       return
     }
+
     setDraft(String(n))
     onChange(n)
   }

@@ -91,7 +91,9 @@ export function buildLineItems(
     const variant = parseSku(item.sku)
     const product = variant ? productBySlug(variant.productSlug) : undefined
 
-    if (!variant || !product) return { ok: false }
+    if (!variant || !product) {
+      return { ok: false }
+    }
 
     const size = sizeById(variant.sizeId)
     const palette = PALETTES[variant.paletteId]
@@ -154,7 +156,9 @@ export async function createSession(
 ): Promise<CreateSessionResult> {
   const built = buildLineItems(input.items, input.delivery, env.SITE_URL)
 
-  if (!built.ok) return { ok: false, status: 400, error: 'Unknown SKU' }
+  if (!built.ok) {
+    return { ok: false, status: 400, error: 'Unknown SKU' }
+  }
 
   const key = await idempotencyKey(input)
   const params: CheckoutSessionParams = {
@@ -174,7 +178,10 @@ export async function createSession(
   } catch {
     return { ok: false, status: 502, error: 'Could not create a checkout session' }
   }
-  if (!session.url) return { ok: false, status: 502, error: 'Stripe did not return a checkout url' }
+
+  if (!session.url) {
+    return { ok: false, status: 502, error: 'Stripe did not return a checkout url' }
+  }
 
   return { ok: true, url: session.url, id: session.id }
 }
@@ -194,7 +201,10 @@ export type GetSessionResult =
   | { ok: false; status: number; error: string }
 
 export async function getSession(stripe: StripeLike, id: string): Promise<GetSessionResult> {
-  if (!/^cs_[A-Za-z0-9_]{1,255}$/.test(id)) return { ok: false, status: 400, error: 'Invalid session id' }
+  if (!/^cs_[A-Za-z0-9_]{1,255}$/.test(id)) {
+    return { ok: false, status: 400, error: 'Invalid session id' }
+  }
+
   try {
     const session = await stripe.checkout.sessions.retrieve(id)
 
@@ -215,6 +225,7 @@ export async function getSession(stripe: StripeLike, id: string): Promise<GetSes
     if (code === 'resource_missing' || statusCode === 404) {
       return { ok: false, status: 404, error: 'Session not found' }
     }
+
     console.error('checkout: session lookup failed', code ?? statusCode ?? (error instanceof Error ? error.message : 'unknown'))
 
     return { ok: false, status: 502, error: 'Session lookup failed' }

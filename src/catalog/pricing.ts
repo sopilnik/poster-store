@@ -22,17 +22,23 @@ function isPaletteOfProduct(p: Product, x: string): x is PaletteId {
 export function parseSku(sku: string): Variant | null {
   const m = /^(.+)-(a3|a2|a1)-([a-z]+)$/.exec(sku)
 
-  if (!m) return null
+  if (!m) {
+    return null
+  }
 
   const productSlug = m[1]
   const sizeId = m[2]
   const paletteId = m[3]
 
-  if (!productSlug || !sizeId || !paletteId || !isSizeId(sizeId)) return null
+  if (!productSlug || !sizeId || !paletteId || !isSizeId(sizeId)) {
+    return null
+  }
 
   const p = productBySlug(productSlug)
 
-  if (!p || !isPaletteOfProduct(p, paletteId)) return null
+  if (!p || !isPaletteOfProduct(p, paletteId)) {
+    return null
+  }
 
   return { productSlug, sizeId, paletteId }
 }

@@ -10,7 +10,9 @@ export function CartPageClient() {
   const { items, hydrated, dispatch } = useCart()
   const lines = priceLines(items)
 
-  if (!hydrated) return null
+  if (!hydrated) {
+    return null
+  }
 
   if (lines.length === 0) {
     return (

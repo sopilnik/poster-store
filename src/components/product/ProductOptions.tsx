@@ -96,7 +96,9 @@ export function ProductOptions({ product }: { product: Product }) {
             items={sizeItems}
             value={sizeId}
             onValueChange={value => {
-              if (typeof value === 'string') setSizeId(value as SizeId)
+              if (typeof value === 'string') {
+                setSizeId(value as SizeId)
+              }
             }}
           >
             <SelectTrigger aria-label="Size">

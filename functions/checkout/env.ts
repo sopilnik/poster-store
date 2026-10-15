@@ -9,7 +9,9 @@ type RawEnv = Partial<Record<keyof Env, string>>
 function required(raw: RawEnv, name: keyof Env): string {
   const value = raw[name]
 
-  if (!value) throw new Error(`Missing environment variable: ${name}`)
+  if (!value) {
+    throw new Error(`Missing environment variable: ${name}`)
+  }
 
   return value
 }

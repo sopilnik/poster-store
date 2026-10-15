@@ -131,6 +131,7 @@ describe('main', () => {
       const fetchImpl = vi.fn()
 
       await expect(main({ env: ENV, fetchImpl, outDir, log: () => {} })).rejects.toThrow(/index\.html/)
+
       expect(fetchImpl).not.toHaveBeenCalled()
     } finally {
       await rm(outDir, { recursive: true, force: true })
@@ -139,33 +140,33 @@ describe('main', () => {
 
   test('uploads before deleting stale entries and purges last, in order', async () => {
     const outDir = await makeOutDir()
+    const rootUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/`
+    const oldDirUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/old-dir/`
+    const listings = {
+      [rootUrl]: [
+        { ObjectName: 'old.txt', IsDirectory: false },
+        { ObjectName: 'old-dir', IsDirectory: true },
+      ],
+      [oldDirUrl]: [{ ObjectName: 'inner.txt', IsDirectory: false }],
+    }
+    const calls = []
+    const fetchImpl = vi.fn(async (url, options = {}) => {
+      const method = options.method ?? 'GET'
+
+      calls.push({ method, url })
+
+      if (method === 'GET') {
+        return jsonResponse(listings[url] ?? [])
+      }
+
+      return { ok: true, status: 200 }
+    })
+    const logLines = []
 
     try {
       await mkdir(path.join(outDir, 'assets'))
       await writeFile(path.join(outDir, 'index.html'), '<html></html>')
       await writeFile(path.join(outDir, 'assets', 'app.js'), 'console.log(1)')
-
-      const rootUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/`
-      const oldDirUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/old-dir/`
-      const listings = {
-        [rootUrl]: [
-          { ObjectName: 'old.txt', IsDirectory: false },
-          { ObjectName: 'old-dir', IsDirectory: true },
-        ],
-        [oldDirUrl]: [{ ObjectName: 'inner.txt', IsDirectory: false }],
-      }
-
-      const calls = []
-      const fetchImpl = vi.fn(async (url, options = {}) => {
-        const method = options.method ?? 'GET'
-
-        calls.push({ method, url })
-        if (method === 'GET') return jsonResponse(listings[url] ?? [])
-
-        return { ok: true, status: 200 }
-      })
-
-      const logLines = []
 
       await main({ env: ENV, fetchImpl, outDir, log: line => logLines.push(line) })
 
@@ -174,18 +175,16 @@ describe('main', () => {
       const lastPutIndex = methods.lastIndexOf('PUT')
       const firstDeleteIndex = methods.indexOf('DELETE')
       const postIndex = methods.indexOf('POST')
+      const putCalls = calls.filter(call => call.method === 'PUT')
+      const deleteCalls = calls.filter(call => call.method === 'DELETE')
 
       expect(getCount).toBe(2)
       expect(methods.slice(0, 2)).toEqual(['GET', 'GET'])
       expect(lastPutIndex).toBeLessThan(firstDeleteIndex)
       expect(postIndex).toBe(methods.length - 1)
 
-      const putCalls = calls.filter(call => call.method === 'PUT')
-
       expect(putCalls[0].url.endsWith('/assets/app.js')).toBe(true)
       expect(putCalls[1].url.endsWith('/index.html')).toBe(true)
-
-      const deleteCalls = calls.filter(call => call.method === 'DELETE')
 
       expect(deleteCalls[0].url.endsWith('/old.txt')).toBe(true)
       expect(deleteCalls[1].url.endsWith('/old-dir/inner.txt')).toBe(true)
@@ -210,6 +209,7 @@ describe('main', () => {
       const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }))
 
       await expect(main({ env: ENV, fetchImpl, outDir, log: () => {} })).rejects.toThrow(/list failed \(404\) for \//)
+
       expect(fetchImpl).toHaveBeenCalledTimes(1)
       expect(timeoutSpy.mock.calls).toEqual([[30_000]])
     } finally {

@@ -1,10 +1,14 @@
 import { absoluteUrl, SITE_URL } from './siteServer'
+
 beforeEach(() => { vi.resetModules() })
+
 afterEach(() => { vi.unstubAllEnvs(); vi.resetModules() })
+
 test('site url has no trailing slash and joins paths', () => {
   expect(SITE_URL.endsWith('/')).toBe(false)
   expect(absoluteUrl('/shop/')).toBe(`${SITE_URL}/shop/`)
 })
+
 test('SITE_URL from the environment loses its trailing slash', async () => {
   vi.stubEnv('SITE_URL', 'https://posters.example.com/')
 

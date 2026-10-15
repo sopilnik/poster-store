@@ -55,6 +55,7 @@ export function readEnv(source = process.env) {
     if (!value) {
       throw new Error(`missing required environment variable ${name}`)
     }
+
     raw[name] = value
   }
 
@@ -129,7 +130,9 @@ function storageUrl(env, storagePath) {
  * @returns {Promise<void>}
  */
 async function pauseBeforeRetry(attempt) {
-  if (attempt < REQUEST_RETRIES) await sleep(RETRY_DELAY_MS * attempt)
+  if (attempt < REQUEST_RETRIES) {
+    await sleep(RETRY_DELAY_MS * attempt)
+  }
 }
 
 /**
@@ -160,11 +163,15 @@ async function fetchWithRetry(fetchImpl, { url, init, what, where, timeoutMs = R
       continue
     }
 
-    if (response.ok) return response
+    if (response.ok) {
+      return response
+    }
 
     const failure = new Error(`${what} failed (${response.status})${where ? ` for ${where}` : ''}`)
 
-    if (response.status < SERVER_ERROR_STATUS) throw failure
+    if (response.status < SERVER_ERROR_STATUS) {
+      throw failure
+    }
 
     lastError = failure
     await pauseBeforeRetry(attempt)
@@ -209,7 +216,10 @@ async function listRemote(env, fetchImpl, dir = '') {
     const entryPath = dir ? `${dir}/${encodeURIComponent(item.ObjectName)}` : encodeURIComponent(item.ObjectName)
 
     entries.push({ path: entryPath, isDirectory: Boolean(item.IsDirectory) })
-    if (item.IsDirectory) entries.push(...(await listRemote(env, fetchImpl, entryPath)))
+
+    if (item.IsDirectory) {
+      entries.push(...(await listRemote(env, fetchImpl, entryPath)))
+    }
   }
 
   return entries
@@ -257,8 +267,12 @@ async function deleteRemote(env, { remote, isDirectory }, fetchImpl) {
 async function removeStale(env, { remoteEntries, localPaths }, fetchImpl) {
   const { staleFiles, staleDirs } = staleEntries(remoteEntries, localPaths)
 
-  for (const remote of staleFiles) await deleteRemote(env, { remote, isDirectory: false }, fetchImpl)
-  for (const remote of staleDirs) await deleteRemote(env, { remote, isDirectory: true }, fetchImpl)
+  for (const remote of staleFiles) {
+    await deleteRemote(env, { remote, isDirectory: false }, fetchImpl)
+  }
+  for (const remote of staleDirs) {
+    await deleteRemote(env, { remote, isDirectory: true }, fetchImpl)
+  }
 
   return { files: staleFiles.length, dirs: staleDirs.length }
 }

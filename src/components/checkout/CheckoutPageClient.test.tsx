@@ -25,10 +25,14 @@ function manyCartItems(count: number): CartItem[] {
 
   for (const product of PRODUCTS) {
     for (const paletteId of product.palettes) {
-      if (items.length >= count) return items
+      if (items.length >= count) {
+        return items
+      }
+
       items.push({ sku: `${product.slug}-a3-${paletteId}`, productSlug: product.slug, sizeId: 'a3', paletteId, qty: 1 })
     }
   }
+
   throw new Error(`the catalog does not have ${count} distinct variants`)
 }
 
@@ -74,6 +78,7 @@ test('a rejected checkout session request keeps the form and shows the toast', a
   await waitFor(() => {
     expect(toast).toHaveBeenCalledWith('Card payment is unavailable right now. You can place a demo order instead.')
   })
+
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(pushMock).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: /pay with card/i })).toBeInTheDocument()
@@ -102,6 +107,7 @@ test('a cart over the line limit shows the card limit toast instead of starting 
       `Card payment takes up to ${MAX_CART_LINES} different items. Remove some, or place a demo order.`
     )
   })
+
   expect(fetchSpy).not.toHaveBeenCalled()
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(loadOrder()).toBeNull()
@@ -131,6 +137,7 @@ test('a checkout session response pointing off Stripe keeps the cart and does no
   await waitFor(() => {
     expect(toast).toHaveBeenCalledWith('Card payment is unavailable right now. You can place a demo order instead.')
   })
+
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(assignSpy).not.toHaveBeenCalled()
   expect(loadOrder()).toBeNull()
@@ -160,6 +167,7 @@ test('a checkout session response using a non-https url to a Stripe host keeps t
   await waitFor(() => {
     expect(toast).toHaveBeenCalledWith('Card payment is unavailable right now. You can place a demo order instead.')
   })
+
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(assignSpy).not.toHaveBeenCalled()
   expect(loadOrder()).toBeNull()
@@ -189,6 +197,7 @@ test('a checkout session response without a valid https url keeps the cart and d
   await waitFor(() => {
     expect(toast).toHaveBeenCalledWith('Card payment is unavailable right now. You can place a demo order instead.')
   })
+
   expect(dispatch).not.toHaveBeenCalledWith({ type: 'clear' })
   expect(assignSpy).not.toHaveBeenCalled()
   expect(loadOrder()).toBeNull()
@@ -218,6 +227,7 @@ test('a checkout session response with a valid https url clears the cart and nav
   await waitFor(() => {
     expect(assignSpy).toHaveBeenCalledWith('https://checkout.stripe.com/c/pay/cs_test_1')
   })
+
   expect(dispatch).toHaveBeenCalledWith({ type: 'clear' })
   expect(toast).not.toHaveBeenCalled()
   expect(loadOrder()).toMatchObject({ payment: 'stripe', paymentStatus: 'pending' })
@@ -261,7 +271,9 @@ test('the redirect notice replaces the empty-cart view while the browser leaves 
 test('the redirect notice goes away when the page is restored from the cache', async () => {
   const assignSpy = vi.fn()
   const dispatch = vi.fn<(action: CartAction) => void>()
+  const persistedEvent = new Event('pageshow')
 
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
@@ -291,9 +303,6 @@ test('the redirect notice goes away when the page is restored from the cache', a
 
   expect(screen.getByRole('status')).toHaveTextContent('Taking you to Stripe…')
 
-  const persistedEvent = new Event('pageshow')
-
-  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
   })
@@ -304,7 +313,10 @@ test('the redirect notice goes away when the page is restored from the cache', a
 test('a page restored from the back-forward cache puts the pending order back into the cart', async () => {
   const reloadSpy = vi.fn()
   const dispatch = vi.fn<(action: CartAction) => void>()
+  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+  const persistedEvent = new Event('pageshow')
 
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
 
   render(
@@ -313,13 +325,8 @@ test('a page restored from the back-forward cache puts the pending order back in
     </CartContext.Provider>
   )
 
-  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
-
   saveOrder(order)
 
-  const persistedEvent = new Event('pageshow')
-
-  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
   })
@@ -332,7 +339,10 @@ test('a page restored from the back-forward cache puts the pending order back in
 test('a page restored from the back-forward cache with items in the cart changes nothing', async () => {
   const reloadSpy = vi.fn()
   const dispatch = vi.fn<(action: CartAction) => void>()
+  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+  const persistedEvent = new Event('pageshow')
 
+  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
 
   render(
@@ -341,13 +351,8 @@ test('a page restored from the back-forward cache with items in the cart changes
     </CartContext.Provider>
   )
 
-  const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
-
   saveOrder(order)
 
-  const persistedEvent = new Event('pageshow')
-
-  Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
   })
@@ -359,10 +364,9 @@ test('a page restored from the back-forward cache with items in the cart changes
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
   const order = makeOrder()
+  const dispatch = vi.fn<(action: CartAction) => void>()
 
   saveOrder(order)
-
-  const dispatch = vi.fn<(action: CartAction) => void>()
 
   render(
     <CartContext.Provider value={contextValue({ items: [], dispatch })}>
@@ -373,6 +377,7 @@ test('a pending Stripe order is restored into the cart and cleared from storage'
   await waitFor(() => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'replace', items: order.items })
   })
+
   await waitFor(() => {
     expect(loadOrder()).toBeNull()
   })

@@ -76,6 +76,7 @@ test('a throwing sessionStorage.removeItem does not throw', () => {
   vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
     throw new Error('blocked')
   })
+
   expect(() => clearOrder()).not.toThrow()
 })
 
@@ -83,9 +84,11 @@ test('a throwing sessionStorage.getItem yields null and saveOrder still does not
   vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
     throw new Error('blocked')
   })
+
   vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
     throw new Error('blocked')
   })
+
   expect(loadOrder()).toBeNull()
   expect(() => saveOrder(ORDER)).not.toThrow()
 })

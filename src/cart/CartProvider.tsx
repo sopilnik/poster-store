@@ -13,19 +13,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, initialState)
   const [hydrated, markHydrated] = useReducer(() => true, false)
   const [isOpen, setIsOpen] = useState(false)
-
-  useEffect(() => {
-    dispatch({ type: 'replace', items: loadCart() })
-    markHydrated()
-  }, [])
-
-  useEffect(() => {
-    if (hydrated) saveCart(state.items)
-  }, [state.items, hydrated])
-
   const open = useCallback(() => setIsOpen(true), [])
   const close = useCallback(() => setIsOpen(false), [])
-
   const value = useMemo<CartContextValue>(
     () => ({
       items: state.items,
@@ -38,13 +27,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [state.items, hydrated, isOpen, open, close]
   )
 
+  useEffect(() => {
+    dispatch({ type: 'replace', items: loadCart() })
+    markHydrated()
+  }, [])
+
+  useEffect(() => {
+    if (hydrated) {
+      saveCart(state.items)
+    }
+  }, [state.items, hydrated])
+
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
 export function useCart(): CartContextValue {
   const context = useContext(CartContext)
 
-  if (!context) throw new Error('useCart must be used inside CartProvider')
+  if (!context) {
+    throw new Error('useCart must be used inside CartProvider')
+  }
 
   return context
 }

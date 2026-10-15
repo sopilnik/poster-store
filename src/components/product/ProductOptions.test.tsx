@@ -79,11 +79,13 @@ test('quantity stays within 1 and 10', async () => {
   const field = screen.getByRole('textbox', { name: 'Quantity' })
 
   await userEvent.click(decrease)
+
   expect(field).toHaveValue('1')
 
   for (let i = 0; i < 10; i++) {
     await userEvent.click(increase)
   }
+
   expect(field).toHaveValue('10')
 })
 

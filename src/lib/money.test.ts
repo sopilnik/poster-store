@@ -1,4 +1,5 @@
 import { formatCents, formatDollars } from './money'
+
 test('formats whole and fractional dollars', () => {
   expect(formatCents(2900)).toBe('$29.00')
   expect(formatCents(4505)).toBe('$45.05')

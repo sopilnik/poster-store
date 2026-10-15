@@ -64,7 +64,10 @@ for (const cart of [CART_BELOW_FREE_SHIPPING, CART_ABOVE_FREE_SHIPPING, CART_EXP
     const result = buildLineItems(cart.items, cart.delivery, ENV.SITE_URL)
 
     expect(result.ok).toBe(true)
-    if (!result.ok) return
+
+    if (!result.ok) {
+      return
+    }
 
     const lineItemsTotal = result.lineItems.reduce(
       (sum, item) => sum + item.price_data.unit_amount * item.quantity,
@@ -84,7 +87,11 @@ test('buildLineItems returns the free-shipping amount for the above-threshold ca
   const result = buildLineItems(CART_ABOVE_FREE_SHIPPING.items, CART_ABOVE_FREE_SHIPPING.delivery, ENV.SITE_URL)
 
   expect(result.ok).toBe(true)
-  if (!result.ok) return
+
+  if (!result.ok) {
+    return
+  }
+
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(0)
   expect(result.totalCents).toBe(18500)
 })
@@ -93,7 +100,11 @@ test('buildLineItems returns the express amount regardless of subtotal', () => {
   const result = buildLineItems(CART_EXPRESS.items, CART_EXPRESS.delivery, ENV.SITE_URL)
 
   expect(result.ok).toBe(true)
-  if (!result.ok) return
+
+  if (!result.ok) {
+    return
+  }
+
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(1900)
   expect(result.totalCents).toBe(14500)
 })
@@ -102,7 +113,11 @@ test('buildLineItems returns the standard amount and a literal total for the bel
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, CART_BELOW_FREE_SHIPPING.delivery, ENV.SITE_URL)
 
   expect(result.ok).toBe(true)
-  if (!result.ok) return
+
+  if (!result.ok) {
+    return
+  }
+
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(900)
   expect(result.totalCents).toBe(3800)
 })
@@ -117,7 +132,11 @@ test('buildLineItems includes no product image over http', () => {
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, 'standard', 'http://localhost:4321')
 
   expect(result.ok).toBe(true)
-  if (!result.ok) return
+
+  if (!result.ok) {
+    return
+  }
+
   expect(result.lineItems[0]?.price_data.product_data.images).toBeUndefined()
 })
 
@@ -125,7 +144,11 @@ test('buildLineItems includes the product image over https', () => {
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, 'standard', 'https://example.test')
 
   expect(result.ok).toBe(true)
-  if (!result.ok) return
+
+  if (!result.ok) {
+    return
+  }
+
   expect(result.lineItems[0]?.price_data.product_data.images).toEqual([
     'https://example.test/posters/quiet-hours.png',
   ])

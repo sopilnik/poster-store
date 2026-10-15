@@ -23,7 +23,9 @@ const ORDER_FIELD_CHECKS: ((order: Record<string, unknown>) => boolean)[] = [
 ]
 
 function isWellFormedOrder(value: unknown): value is Order {
-  if (!value || typeof value !== 'object') return false
+  if (!value || typeof value !== 'object') {
+    return false
+  }
 
   const candidate = value as Record<string, unknown>
 
@@ -31,7 +33,10 @@ function isWellFormedOrder(value: unknown): value is Order {
 }
 
 export function saveOrder(order: Order): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    return
+  }
+
   try {
     window.sessionStorage.setItem(ORDER_KEY, JSON.stringify(order))
   } catch {
@@ -40,7 +45,10 @@ export function saveOrder(order: Order): void {
 }
 
 export function clearOrder(): void {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    return
+  }
+
   try {
     window.sessionStorage.removeItem(ORDER_KEY)
   } catch {
@@ -49,15 +57,22 @@ export function clearOrder(): void {
 }
 
 export function loadOrder(): Order | null {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') {
+    return null
+  }
+
   try {
     const raw = window.sessionStorage.getItem(ORDER_KEY)
 
-    if (!raw) return null
+    if (!raw) {
+      return null
+    }
 
     const parsed: unknown = JSON.parse(raw)
 
-    if (!isWellFormedOrder(parsed)) return null
+    if (!isWellFormedOrder(parsed)) {
+      return null
+    }
 
     return parsed
   } catch {

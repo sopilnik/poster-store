@@ -34,11 +34,16 @@ export function CheckoutPageClient() {
   const [redirecting, setRedirecting] = useState(false)
 
   const restorePendingOrder = useCallback((): boolean => {
-    if (items.length !== 0) return false
+    if (items.length !== 0) {
+      return false
+    }
 
     const stored = loadOrder()
 
-    if (stored?.paymentStatus !== 'pending') return false
+    if (stored?.paymentStatus !== 'pending') {
+      return false
+    }
+
     dispatch({ type: 'replace', items: stored.items })
     clearOrder()
 
@@ -46,7 +51,10 @@ export function CheckoutPageClient() {
   }, [items, dispatch])
 
   useEffect(() => {
-    if (!hydrated) return
+    if (!hydrated) {
+      return
+    }
+
     restorePendingOrder()
     markChecked(lines.length === 0 ? loadOrder() !== null : false)
     // The cart at mount time decides whether a pending order is restored and whether the cart is
@@ -61,16 +69,22 @@ export function CheckoutPageClient() {
     // already cleared; restoring in place avoids a navigation, which Chrome refused with an
     // error page when it was tried from inside the restore.
     function handlePageShow(event: PageTransitionEvent) {
-      if (!event.persisted) return
+      if (!event.persisted) {
+        return
+      }
+
       setRedirecting(false)
       restorePendingOrder()
     }
+
     window.addEventListener('pageshow', handlePageShow)
 
     return () => window.removeEventListener('pageshow', handlePageShow)
   }, [restorePendingOrder])
 
-  if (!hydrated || !checked) return null
+  if (!hydrated || !checked) {
+    return null
+  }
 
   if (redirecting) {
     return <p role="status" className="mt-6 text-sm text-muted-foreground">Taking you to Stripe…</p>
@@ -109,6 +123,7 @@ export function CheckoutPageClient() {
       }
 
       saveOrder({ ...order, payment: 'stripe', paymentStatus: 'pending' })
+
       try {
         const response = await fetch(`${CHECKOUT_API}${SESSION_ROUTE}`, {
           method: 'POST',
@@ -121,7 +136,9 @@ export function CheckoutPageClient() {
           }),
         })
 
-        if (!response.ok) throw new Error('checkout session request failed')
+        if (!response.ok) {
+          throw new Error('checkout session request failed')
+        }
 
         const data: unknown = await response.json()
         const url = data && typeof data === 'object' ? (data as Record<string, unknown>).url : undefined
@@ -130,6 +147,7 @@ export function CheckoutPageClient() {
         if (!target || !isStripeUrl(target)) {
           throw new Error('checkout session response did not include a Stripe url')
         }
+
         setRedirecting(true)
         dispatch({ type: 'clear' })
         window.location.assign(target.href)

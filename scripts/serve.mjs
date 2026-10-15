@@ -7,7 +7,9 @@ const root = path.resolve('out')
 const port = Number(process.env.PORT ?? 4321)
 
 try {
-  if (!(await stat(path.join(root, 'index.html'))).isFile()) throw new Error()
+  if (!(await stat(path.join(root, 'index.html'))).isFile()) {
+    throw new Error()
+  }
 } catch {
   console.error('serve: no build in out/ — run pnpm build first')
   process.exit(1)
@@ -66,9 +68,14 @@ async function resolve(urlPath) {
   for (const c of candidates) {
     const rel = path.relative(root, c)
 
-    if (rel.startsWith('..') || path.isAbsolute(rel)) continue
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      continue
+    }
+
     try {
-      if ((await stat(c)).isFile()) return { file: c, status: 200 }
+      if ((await stat(c)).isFile()) {
+        return { file: c, status: 200 }
+      }
     } catch {
       // a stat failure here just means "try the next candidate"
     }
@@ -90,6 +97,7 @@ const server = createServer(async (req, res) => {
 
     return res.end('not found')
   }
+
   res.writeHead(status, {
     ...securityHeaders,
     'content-type': types[path.extname(file)] ?? 'application/octet-stream',
@@ -104,6 +112,7 @@ server.on('error', (/** @type {NodeJS.ErrnoException} */ error) => {
   } else {
     console.error(`serve: ${error.message}`)
   }
+
   process.exit(1)
 })
 

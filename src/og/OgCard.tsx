@@ -15,7 +15,9 @@ export type OgCardProps = {
 }
 
 function PosterBlock({ poster, palette }: { poster?: PosterSpec; palette?: Palette }) {
-  if (!poster || !palette) return null
+  if (!poster || !palette) {
+    return null
+  }
 
   const fit = Math.min(340 / 1000, 550 / 1414)
   const width = 1000 * fit

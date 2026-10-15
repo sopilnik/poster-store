@@ -1,5 +1,6 @@
 import { variantPriceCents, skuOf, parseSku } from './pricing'
 import { requireProduct } from './products'
+
 test('price is base plus size surcharge', () => {
   const p = requireProduct('quiet-hours')
 
@@ -7,6 +8,7 @@ test('price is base plus size surcharge', () => {
   expect(variantPriceCents(p, 'a2')).toBe(4500)
   expect(variantPriceCents(p, 'a1')).toBe(6900)
 })
+
 test('sku round-trips and rejects junk', () => {
   const v = { productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 'ink' as const }
 

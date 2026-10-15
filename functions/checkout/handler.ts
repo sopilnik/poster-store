@@ -38,7 +38,9 @@ function corsHeaders(request: Request, env: Env): HeadersInit {
   const functionOrigin = new URL(request.url).origin
   const siteOrigin = new URL(env.SITE_URL).origin
 
-  if (functionOrigin === siteOrigin) return {}
+  if (functionOrigin === siteOrigin) {
+    return {}
+  }
 
   return {
     [ALLOW_ORIGIN_HEADER]: siteOrigin,
@@ -55,9 +57,13 @@ async function readBody(request: Request, maxBytes: number): Promise<ReadBodyRes
   if (contentLength !== null) {
     const length = Number.parseInt(contentLength, 10)
 
-    if (Number.isNaN(length) || length < 0 || length > maxBytes) return { ok: false }
+    if (Number.isNaN(length) || length < 0 || length > maxBytes) {
+      return { ok: false }
+    }
   }
-  if (request.body === null) return { ok: true, text: '' }
+  if (request.body === null) {
+    return { ok: true, text: '' }
+  }
 
   const reader = request.body.getReader()
   const chunks: Uint8Array[] = []
@@ -66,13 +72,18 @@ async function readBody(request: Request, maxBytes: number): Promise<ReadBodyRes
   for (;;) {
     const { done, value } = await reader.read()
 
-    if (done) break
+    if (done) {
+      break
+    }
+
     total += value.byteLength
+
     if (total > maxBytes) {
       await reader.cancel()
 
       return { ok: false }
     }
+
     chunks.push(value)
   }
 
@@ -96,7 +107,9 @@ function concatChunks(chunks: Uint8Array[], total: number): Uint8Array {
 function isAllowedOrigin(request: Request, env: Env): boolean {
   const origin = request.headers.get(ORIGIN_HEADER)
 
-  if (!origin) return true
+  if (!origin) {
+    return true
+  }
 
   return origin === new URL(env.SITE_URL).origin
 }
@@ -119,7 +132,9 @@ async function handleCreateSession(request: Request, { env, makeStripe, headers 
 
   const body = await readBody(request, MAX_SESSION_BODY_BYTES)
 
-  if (!body.ok) return jsonResponse(413, { error: 'Request body is too large' }, headers)
+  if (!body.ok) {
+    return jsonResponse(413, { error: 'Request body is too large' }, headers)
+  }
 
   let json: unknown
 
@@ -131,11 +146,15 @@ async function handleCreateSession(request: Request, { env, makeStripe, headers 
 
   const parsed = checkoutSessionSchema.safeParse(json)
 
-  if (!parsed.success) return jsonResponse(400, { error: 'Invalid request body' }, headers)
+  if (!parsed.success) {
+    return jsonResponse(400, { error: 'Invalid request body' }, headers)
+  }
 
   const result = await createSession(makeStripe(env.STRIPE_SECRET_KEY), parsed.data, env)
 
-  if (!result.ok) return jsonResponse(result.status, { error: result.error }, headers)
+  if (!result.ok) {
+    return jsonResponse(result.status, { error: result.error }, headers)
+  }
 
   return jsonResponse(200, { url: result.url, id: result.id }, headers)
 }
@@ -143,11 +162,15 @@ async function handleCreateSession(request: Request, { env, makeStripe, headers 
 async function handleGetSession(url: URL, { env, makeStripe, headers }: RouteContext): Promise<Response> {
   const id = url.searchParams.get(SESSION_ID_PARAM)
 
-  if (!id) return jsonResponse(400, { error: 'Missing session id' }, headers)
+  if (!id) {
+    return jsonResponse(400, { error: 'Missing session id' }, headers)
+  }
 
   const result = await getSession(makeStripe(env.STRIPE_SECRET_KEY), id)
 
-  if (!result.ok) return jsonResponse(result.status, { error: result.error }, headers)
+  if (!result.ok) {
+    return jsonResponse(result.status, { error: result.error }, headers)
+  }
 
   return jsonResponse(200, result.body, headers)
 }
@@ -156,8 +179,12 @@ async function handleWebhook(request: Request, { env, makeStripe, headers }: Rou
   const signature = request.headers.get(SIGNATURE_HEADER)
   const body = await readBody(request, MAX_WEBHOOK_BODY_BYTES)
 
-  if (!body.ok) return jsonResponse(413, { error: 'Request body is too large' }, headers)
-  if (!signature) return jsonResponse(400, { error: 'Missing signature' }, headers)
+  if (!body.ok) {
+    return jsonResponse(413, { error: 'Request body is too large' }, headers)
+  }
+  if (!signature) {
+    return jsonResponse(400, { error: 'Missing signature' }, headers)
+  }
 
   try {
     const stripe = makeStripe(env.STRIPE_SECRET_KEY)
@@ -180,18 +207,28 @@ export async function handle(request: Request, env: Env, makeStripe: (key: strin
   const isSessionRoute = pathname === SESSION_ROUTE
   const isWebhookRoute = pathname === WEBHOOK_ROUTE
 
-  if (!isSessionRoute && !isWebhookRoute) return jsonResponse(404, { error: 'Not found' }, headers)
+  if (!isSessionRoute && !isWebhookRoute) {
+    return jsonResponse(404, { error: 'Not found' }, headers)
+  }
 
-  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers })
+  }
 
   if (isSessionRoute) {
-    if (request.method === 'POST') return handleCreateSession(request, context)
-    if (request.method === 'GET') return handleGetSession(url, context)
+    if (request.method === 'POST') {
+      return handleCreateSession(request, context)
+    }
+    if (request.method === 'GET') {
+      return handleGetSession(url, context)
+    }
 
     return jsonResponse(405, { error: 'Method not allowed' }, headers)
   }
 
-  if (request.method === 'POST') return handleWebhook(request, context)
+  if (request.method === 'POST') {
+    return handleWebhook(request, context)
+  }
 
   return jsonResponse(405, { error: 'Method not allowed' }, headers)
 }

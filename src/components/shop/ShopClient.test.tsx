@@ -15,23 +15,31 @@ test('renders all products before hydration state and filters from the URL after
 test('search writes to the URL and clear resets', async () => {
   window.history.replaceState(null, '', '/shop/')
   render(<ShopClient products={PRODUCTS} />)
+
   expect(screen.getByRole('heading', { level: 1, name: 'All posters' })).toBeInTheDocument()
+
   await userEvent.type(await screen.findByRole('searchbox', { name: /search/i }), 'hush')
+
   await waitFor(() => {
     expect(window.location.search).toBe('?q=hush')
     expect(screen.getByText('1 poster')).toBeInTheDocument()
   })
+
   await userEvent.click(screen.getByRole('button', { name: /clear filters/i }))
+
   expect(window.location.search).toBe('')
 })
 
 test('popstate re-syncs the grid', async () => {
   window.history.replaceState(null, '', '/shop/')
   render(<ShopClient products={PRODUCTS} />)
+
   await screen.findByText('16 posters')
+
   act(() => {
     window.history.replaceState(null, '', '/shop/?collection=pastel')
     window.dispatchEvent(new PopStateEvent('popstate'))
   })
+
   expect(await screen.findByText('4 posters')).toBeInTheDocument()
 })

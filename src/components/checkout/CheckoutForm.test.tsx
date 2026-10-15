@@ -43,6 +43,7 @@ test('submitting the empty form shows every required-field message', async () =>
       'Use 3 to 12 letters, digits, spaces or dashes',
     ])
   })
+
   expect(onSubmit).not.toHaveBeenCalled()
 })
 
@@ -66,6 +67,7 @@ test('filling valid values and choosing express calls onSubmit once with deliver
   await fillCheckoutForm(userEvent)
 
   await userEvent.click(screen.getByRole('radio', { name: /express/i }))
+
   await waitFor(() => {
     expect(screen.getByText('$19.00')).toBeInTheDocument()
   })
@@ -75,6 +77,7 @@ test('filling valid values and choosing express calls onSubmit once with deliver
   await waitFor(() => {
     expect(onSubmit).toHaveBeenCalledTimes(1)
   })
+
   expect(onSubmit.mock.calls[0]?.[0]).toMatchObject({ delivery: 'express' })
 })
 

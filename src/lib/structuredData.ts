@@ -5,7 +5,24 @@ import { absoluteUrl } from './siteServer'
 
 const formatUsd = (cents: number): string => (cents / 100).toFixed(2)
 
-export function productJsonLd(product: Product) {
+type ProductJsonLd = {
+  '@context': string
+  '@type': 'Product'
+  name: string
+  description: string
+  url: string
+  image: string
+  offers: {
+    '@type': 'AggregateOffer'
+    priceCurrency: string
+    lowPrice: string
+    highPrice: string
+    offerCount: number
+    availability: string
+  }
+}
+
+export function productJsonLd(product: Product): ProductJsonLd {
   const prices = SIZES.map(s => variantPriceCents(product, s.id))
   const lowPrice = formatUsd(Math.min(...prices))
   const highPrice = formatUsd(Math.max(...prices))

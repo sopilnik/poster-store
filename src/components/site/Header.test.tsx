@@ -48,7 +48,9 @@ test('the theme control and its three segments have accessible names, and clicki
 test('the link of the current page carries aria-current', () => {
   const [firstCollection] = COLLECTIONS
 
-  if (!firstCollection) throw new Error('No collections configured')
+  if (!firstCollection) {
+    throw new Error('No collections configured')
+  }
 
   pathname = '/shop'
 
@@ -62,6 +64,7 @@ test('the link of the current page carries aria-current', () => {
 
   expect(screen.getByRole('link', { name: 'Shop' })).toHaveAttribute('aria-current', 'page')
   expect(screen.getByRole('link', { name: firstCollection.name })).not.toHaveAttribute('aria-current')
+
   unmount()
 
   pathname = `/collections/${firstCollection.slug}/`
@@ -72,6 +75,7 @@ test('the link of the current page carries aria-current', () => {
       </CartProvider>
     </ThemeProvider>
   )
+
   expect(screen.getByRole('link', { name: 'Shop' })).not.toHaveAttribute('aria-current')
   expect(screen.getByRole('link', { name: firstCollection.name })).toHaveAttribute('aria-current', 'page')
 })

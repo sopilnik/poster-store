@@ -28,9 +28,15 @@ export function serializeShopQuery(q: ShopQuery): string {
   const params = new URLSearchParams()
   const trimmedQ = q.q.trim()
 
-  if (q.collection) params.set('collection', q.collection)
-  if (q.sort !== 'default') params.set('sort', q.sort)
-  if (trimmedQ) params.set('q', trimmedQ)
+  if (q.collection) {
+    params.set('collection', q.collection)
+  }
+  if (q.sort !== 'default') {
+    params.set('sort', q.sort)
+  }
+  if (trimmedQ) {
+    params.set('q', trimmedQ)
+  }
 
   const serialized = params.toString()
 
@@ -40,7 +46,9 @@ export function serializeShopQuery(q: ShopQuery): string {
 export function searchProducts(products: Product[], q: string): Product[] {
   const needle = q.trim().toLowerCase()
 
-  if (!needle) return [...products]
+  if (!needle) {
+    return [...products]
+  }
 
   return products.filter(p => p.name.toLowerCase().includes(needle) || p.tags.some(tag => tag.toLowerCase().includes(needle)))
 }
@@ -48,9 +56,15 @@ export function searchProducts(products: Product[], q: string): Product[] {
 export function sortProducts(products: Product[], sort: SortId): Product[] {
   const copy = [...products]
 
-  if (sort === 'price-asc') return copy.sort((a, b) => a.basePriceCents - b.basePriceCents)
-  if (sort === 'price-desc') return copy.sort((a, b) => b.basePriceCents - a.basePriceCents)
-  if (sort === 'name') return copy.sort((a, b) => a.name.localeCompare(b.name))
+  if (sort === 'price-asc') {
+    return copy.sort((a, b) => a.basePriceCents - b.basePriceCents)
+  }
+  if (sort === 'price-desc') {
+    return copy.sort((a, b) => b.basePriceCents - a.basePriceCents)
+  }
+  if (sort === 'name') {
+    return copy.sort((a, b) => a.name.localeCompare(b.name))
+  }
 
   return copy
 }

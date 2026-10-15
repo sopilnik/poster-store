@@ -23,6 +23,7 @@ function write(file: string, png: Buffer, max: number) {
     console.error(`render: ${file} is ${png.length} bytes, over the ${max} budget`)
     process.exit(1)
   }
+
   writeFileSync(file, png)
 }
 

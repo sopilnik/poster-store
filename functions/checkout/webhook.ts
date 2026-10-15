@@ -10,7 +10,9 @@ export async function verifyWebhook(
 }
 
 export function dispatchEvent(event: StripeEventLike): void {
-  if (event.type !== 'checkout.session.completed') return
+  if (event.type !== 'checkout.session.completed') {
+    return
+  }
 
   const session = event.data.object
 

@@ -34,6 +34,9 @@ export function ShopClient({ products }: { products: Product[] }) {
   const [query, setQuery] = useState<ShopQuery>(() => parseShopQuery(''))
   const [searchText, setSearchText] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const results = mounted ? filterProducts(products, query) : products
+  const count = results.length
+  const heading = query.collection ? collectionBySlug(query.collection)?.name : 'All posters'
 
   useEffect(() => {
     function sync() {
@@ -42,6 +45,7 @@ export function ShopClient({ products }: { products: Product[] }) {
       setQuery(next)
       setSearchText(next.q)
     }
+
     sync()
     window.addEventListener('popstate', sync)
 
@@ -52,7 +56,10 @@ export function ShopClient({ products }: { products: Product[] }) {
   }, [])
 
   function clearPending() {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+    }
+
     debounceRef.current = null
   }
 
@@ -64,6 +71,7 @@ export function ShopClient({ products }: { products: Product[] }) {
   function handleSearchChange(value: string) {
     setSearchText(value)
     clearPending()
+
     debounceRef.current = setTimeout(() => {
       update({ ...query, q: value })
     }, SEARCH_DEBOUNCE_MS)
@@ -71,12 +79,15 @@ export function ShopClient({ products }: { products: Product[] }) {
 
   function handleCollectionChange(value: string) {
     clearPending()
+
     if (value === 'all') {
       update({ sort: query.sort, q: searchText })
 
       return
     }
-    if (isCollectionSlug(value)) update({ ...query, q: searchText, collection: value })
+    if (isCollectionSlug(value)) {
+      update({ ...query, q: searchText, collection: value })
+    }
   }
 
   function handleSortChange(value: SortId) {
@@ -89,10 +100,6 @@ export function ShopClient({ products }: { products: Product[] }) {
     setSearchText('')
     update({ sort: 'default', q: '' })
   }
-
-  const results = mounted ? filterProducts(products, query) : products
-  const count = results.length
-  const heading = query.collection ? collectionBySlug(query.collection)?.name : 'All posters'
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12">
@@ -113,7 +120,9 @@ export function ShopClient({ products }: { products: Product[] }) {
             items={COLLECTION_ITEMS}
             value={query.collection ?? 'all'}
             onValueChange={value => {
-              if (typeof value === 'string') handleCollectionChange(value)
+              if (typeof value === 'string') {
+                handleCollectionChange(value)
+              }
             }}
           >
             <SelectTrigger aria-label="Collection">
@@ -131,7 +140,9 @@ export function ShopClient({ products }: { products: Product[] }) {
             items={SORT_ITEMS}
             value={query.sort}
             onValueChange={value => {
-              if (typeof value === 'string') handleSortChange(value as SortId)
+              if (typeof value === 'string') {
+                handleSortChange(value as SortId)
+              }
             }}
           >
             <SelectTrigger aria-label="Sort">

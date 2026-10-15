@@ -8,13 +8,15 @@ const hex = /#[0-9a-fA-F]{3,8}\b/g
 test.each(PRODUCTS.map(p => [p.slug, p] as const))('%s renders a standalone, deterministic, palette-only SVG', (_, p) => {
   const palette = PALETTES[p.palettes[0]]
   const a = renderPosterMarkup(p, palette), b = renderPosterMarkup(p, palette)
+  const allowedColors = new Set([palette.background, palette.ink, palette.accent].map(c => c.toLowerCase()))
 
   expect(a).toBe(b)
   expect(a.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1414"')).toBe(true)
   expect(a).not.toMatch(forbiddenAttrs)
 
-  const allowedColors = new Set([palette.background, palette.ink, palette.accent].map(c => c.toLowerCase()))
+  for (const c of a.match(hex) ?? []) {
+    expect(allowedColors.has(c.toLowerCase())).toBe(true)
+  }
 
-  for (const c of a.match(hex) ?? []) expect(allowedColors.has(c.toLowerCase())).toBe(true)
   expect(a).not.toMatch(/font-weight="(?!400|700)/)
 })
