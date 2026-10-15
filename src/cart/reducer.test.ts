@@ -10,6 +10,7 @@ function empty(): CartState {
 
 test('add creates a line with qty 1', () => {
   const state = cartReducer(empty(), { type: 'add', variant })
+
   expect(state.items).toEqual([
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 },
   ])
@@ -17,6 +18,7 @@ test('add creates a line with qty 1', () => {
 
 test('adding the same variant increments', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
+
   state = cartReducer(state, { type: 'add', variant })
   expect(state.items).toHaveLength(1)
   expect(state.items[0]?.qty).toBe(2)
@@ -24,6 +26,7 @@ test('adding the same variant increments', () => {
 
 test('a different palette is a separate line', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
+
   state = cartReducer(state, { type: 'add', variant: otherPalette })
   expect(state.items).toHaveLength(2)
 })
@@ -31,6 +34,7 @@ test('a different palette is a separate line', () => {
 test('setQty clamps to 1 and MAX_QTY', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
   const sku = state.items[0]?.sku ?? ''
+
   state = cartReducer(state, { type: 'setQty', sku, qty: 0 })
   expect(state.items[0]?.qty).toBe(1)
   state = cartReducer(state, { type: 'setQty', sku, qty: 99 })
@@ -40,12 +44,14 @@ test('setQty clamps to 1 and MAX_QTY', () => {
 test('remove drops the line', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
   const sku = state.items[0]?.sku ?? ''
+
   state = cartReducer(state, { type: 'remove', sku })
   expect(state.items).toEqual([])
 })
 
 test('clear empties the cart', () => {
   let state = cartReducer(empty(), { type: 'add', variant })
+
   state = cartReducer(state, { type: 'clear' })
   expect(state.items).toEqual([])
 })
@@ -58,6 +64,7 @@ test('clampQty clamps below the minimum, above the maximum, and passes through i
 
 test('remove and setQty with an absent sku leave the items unchanged by content', () => {
   const state = cartReducer(empty(), { type: 'add', variant })
+
   expect(cartReducer(state, { type: 'remove', sku: 'missing' }).items).toEqual(state.items)
   expect(cartReducer(state, { type: 'setQty', sku: 'missing', qty: 5 }).items).toEqual(state.items)
 })
@@ -67,5 +74,6 @@ test('replace swaps the items outright', () => {
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 'ink' as const, qty: 3 },
   ]
   const state = cartReducer(empty(), { type: 'replace', items })
+
   expect(state.items).toBe(items)
 })

@@ -17,6 +17,7 @@ function renderWithCart(dispatch: (action: CartAction) => void) {
 
 test('price follows size and palette selection and add dispatches the variant', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   renderWithCart(dispatch)
   expect(screen.getByText('$29.00', { selector: 'p' })).toBeInTheDocument()
 
@@ -39,6 +40,7 @@ test('palette swatches are radios named after the palette and reflect the select
 
   const paper = screen.getByRole('radio', { name: 'Paper' })
   const ink = screen.getByRole('radio', { name: 'Ink' })
+
   expect(paper).toHaveAttribute('aria-checked', 'true')
   expect(ink).toHaveAttribute('aria-checked', 'false')
 
@@ -69,6 +71,7 @@ test('the ink dot yields to the check mark once a swatch is selected', async () 
 
 test('quantity stays within 1 and 10', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   renderWithCart(dispatch)
 
   const decrease = screen.getByRole('button', { name: 'Decrease quantity' })
@@ -93,9 +96,11 @@ test('the size and quantity controls carry visible captions like the palette', (
 
 test('typing a quantity updates the price and the add-to-cart dispatch', async () => {
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   renderWithCart(dispatch)
 
   const field = screen.getByRole('textbox', { name: 'Quantity' })
+
   await userEvent.clear(field)
   await userEvent.type(field, '3')
   expect(screen.getByText('$87.00', { selector: 'p' })).toBeInTheDocument()

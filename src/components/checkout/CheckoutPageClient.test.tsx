@@ -13,6 +13,7 @@ vi.mock('@/lib/site', () => ({ CHECKOUT_API: 'http://127.0.0.1:8787', hasCheckou
 vi.mock('sonner', () => ({ toast: vi.fn() }))
 
 const pushMock = vi.fn()
+
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
 
 const CART_ITEMS: CartItem[] = [
@@ -21,6 +22,7 @@ const CART_ITEMS: CartItem[] = [
 
 function manyCartItems(count: number): CartItem[] {
   const items: CartItem[] = []
+
   for (const product of PRODUCTS) {
     for (const paletteId of product.palettes) {
       if (items.length >= count) return items
@@ -49,13 +51,15 @@ beforeEach(() => {
 })
 
 test('a rejected checkout session request keeps the form and shows the toast', async () => {
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => {
       throw new Error('network error')
     })
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -78,8 +82,10 @@ test('a rejected checkout session request keeps the form and shows the toast', a
 
 test('a cart over the line limit shows the card limit toast instead of starting checkout', async () => {
   const fetchSpy = vi.fn()
-  vi.stubGlobal('fetch', fetchSpy)
   const dispatch = vi.fn<(action: CartAction) => void>()
+
+  vi.stubGlobal('fetch', fetchSpy)
+
   render(
     <CartContext.Provider value={contextValue({ items: manyCartItems(MAX_CART_LINES + 1), dispatch })}>
       <CheckoutPageClient />
@@ -103,12 +109,14 @@ test('a cart over the line limit shows the card limit toast instead of starting 
 
 test('a checkout session response pointing off Stripe keeps the cart and does not navigate', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://evilstripe.com/pay' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -130,12 +138,14 @@ test('a checkout session response pointing off Stripe keeps the cart and does no
 
 test('a checkout session response using a non-https url to a Stripe host keeps the cart and does not navigate', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'http://checkout.stripe.com/c/pay/cs_test_1' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -157,12 +167,14 @@ test('a checkout session response using a non-https url to a Stripe host keeps t
 
 test('a checkout session response without a valid https url keeps the cart and does not navigate', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'javascript:alert(1)' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -184,12 +196,14 @@ test('a checkout session response without a valid https url keeps the cart and d
 
 test('a checkout session response with a valid https url clears the cart and navigates there', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -211,12 +225,14 @@ test('a checkout session response with a valid https url clears the cart and nav
 
 test('the redirect notice replaces the empty-cart view while the browser leaves for Stripe', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   const { rerender } = render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -244,12 +260,14 @@ test('the redirect notice replaces the empty-cart view while the browser leaves 
 
 test('the redirect notice goes away when the page is restored from the cache', async () => {
   const assignSpy = vi.fn()
+  const dispatch = vi.fn<(action: CartAction) => void>()
+
   vi.stubGlobal('location', { ...window.location, assign: assignSpy })
   vi.stubGlobal(
     'fetch',
     vi.fn(async () => ({ ok: true, json: async () => ({ url: 'https://checkout.stripe.com/c/pay/cs_test_1' }) }))
   )
-  const dispatch = vi.fn<(action: CartAction) => void>()
+
   const { rerender } = render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -274,6 +292,7 @@ test('the redirect notice goes away when the page is restored from the cache', a
   expect(screen.getByRole('status')).toHaveTextContent('Taking you to Stripe…')
 
   const persistedEvent = new Event('pageshow')
+
   Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
@@ -284,8 +303,10 @@ test('the redirect notice goes away when the page is restored from the cache', a
 
 test('a page restored from the back-forward cache puts the pending order back into the cart', async () => {
   const reloadSpy = vi.fn()
-  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
   const dispatch = vi.fn<(action: CartAction) => void>()
+
+  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
+
   render(
     <CartContext.Provider value={contextValue({ items: [], dispatch })}>
       <CheckoutPageClient />
@@ -293,9 +314,11 @@ test('a page restored from the back-forward cache puts the pending order back in
   )
 
   const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+
   saveOrder(order)
 
   const persistedEvent = new Event('pageshow')
+
   Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
@@ -308,8 +331,10 @@ test('a page restored from the back-forward cache puts the pending order back in
 
 test('a page restored from the back-forward cache with items in the cart changes nothing', async () => {
   const reloadSpy = vi.fn()
-  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
   const dispatch = vi.fn<(action: CartAction) => void>()
+
+  vi.stubGlobal('location', { ...window.location, assign: vi.fn(), reload: reloadSpy })
+
   render(
     <CartContext.Provider value={contextValue({ dispatch })}>
       <CheckoutPageClient />
@@ -317,9 +342,11 @@ test('a page restored from the back-forward cache with items in the cart changes
   )
 
   const order = makeOrder({ payment: 'stripe', paymentStatus: 'pending' })
+
   saveOrder(order)
 
   const persistedEvent = new Event('pageshow')
+
   Object.defineProperty(persistedEvent, 'persisted', { value: true })
   act(() => {
     window.dispatchEvent(persistedEvent)
@@ -332,9 +359,11 @@ test('a page restored from the back-forward cache with items in the cart changes
 
 test('a pending Stripe order is restored into the cart and cleared from storage', async () => {
   const order = makeOrder()
+
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ items: [], dispatch })}>
       <CheckoutPageClient />
@@ -351,9 +380,11 @@ test('a pending Stripe order is restored into the cart and cleared from storage'
 
 test('a placed demo order is not restored and shows the placed message', async () => {
   const order = makeOrder({ payment: 'demo', paymentStatus: undefined })
+
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ items: [], dispatch })}>
       <CheckoutPageClient />
@@ -367,9 +398,11 @@ test('a placed demo order is not restored and shows the placed message', async (
 
 test('a paid Stripe order is not restored, stays stored and the cart stays empty', async () => {
   const order = makeOrder({ paymentStatus: 'paid' })
+
   saveOrder(order)
 
   const dispatch = vi.fn<(action: CartAction) => void>()
+
   render(
     <CartContext.Provider value={contextValue({ items: [], dispatch })}>
       <CheckoutPageClient />

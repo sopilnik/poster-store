@@ -5,6 +5,7 @@ const paths = ['/', '/shop/', '/products/low-tide/']
 for (const path of paths) {
   test(`no console or page errors on ${path}`, async ({ page }) => {
     const errors: string[] = []
+
     page.on('console', message => {
       if (message.type() === 'error') errors.push(message.text())
     })

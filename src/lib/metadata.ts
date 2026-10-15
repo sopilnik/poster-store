@@ -17,6 +17,7 @@ export function pageMetadata({
   // never to the root page itself; returning the title as absolute opts every page here out
   // of the template so the suffix is never appended twice.
   const fullTitle = `${title} · ${BRAND}`
+
   return {
     title: { absolute: fullTitle },
     description,

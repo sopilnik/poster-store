@@ -11,18 +11,23 @@ function isDelivery(value: unknown): value is DeliveryId {
   return value === 'standard' || value === 'express'
 }
 
+const ORDER_FIELD_CHECKS: ((order: Record<string, unknown>) => boolean)[] = [
+  (order) => typeof order.id === 'string' && order.id.length > 0,
+  (order) => typeof order.createdAt === 'string',
+  (order) => Array.isArray(order.items),
+  (order) => isFiniteNumber(order.subtotalCents),
+  (order) => isFiniteNumber(order.shippingCents),
+  (order) => isFiniteNumber(order.totalCents),
+  (order) => isDelivery(order.delivery),
+  (order) => Boolean(order.address) && typeof order.address === 'object',
+]
+
 function isWellFormedOrder(value: unknown): value is Order {
   if (!value || typeof value !== 'object') return false
+
   const candidate = value as Record<string, unknown>
-  if (typeof candidate.id !== 'string' || candidate.id.length === 0) return false
-  if (typeof candidate.createdAt !== 'string') return false
-  if (!Array.isArray(candidate.items)) return false
-  if (!isFiniteNumber(candidate.subtotalCents)) return false
-  if (!isFiniteNumber(candidate.shippingCents)) return false
-  if (!isFiniteNumber(candidate.totalCents)) return false
-  if (!isDelivery(candidate.delivery)) return false
-  if (!candidate.address || typeof candidate.address !== 'object') return false
-  return true
+
+  return ORDER_FIELD_CHECKS.every((check) => check(candidate))
 }
 
 export function saveOrder(order: Order): void {
@@ -47,9 +52,13 @@ export function loadOrder(): Order | null {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.sessionStorage.getItem(ORDER_KEY)
+
     if (!raw) return null
+
     const parsed: unknown = JSON.parse(raw)
+
     if (!isWellFormedOrder(parsed)) return null
+
     return parsed
   } catch {
     return null

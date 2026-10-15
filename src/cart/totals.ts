@@ -6,12 +6,18 @@ import type { CartItem, DeliveryId, PricedLine } from './types'
 
 export function priceLines(items: CartItem[]): PricedLine[] {
   const lines: PricedLine[] = []
+
   for (const item of items) {
     const variant = parseSku(item.sku)
+
     if (!variant) continue
+
     const product = productBySlug(variant.productSlug)
+
     if (!product) continue
+
     const unitCents = variantPriceCents(product, variant.sizeId)
+
     lines.push({
       sku: item.sku,
       productSlug: variant.productSlug,
@@ -25,6 +31,7 @@ export function priceLines(items: CartItem[]): PricedLine[] {
       size: sizeById(variant.sizeId),
     })
   }
+
   return lines
 }
 
@@ -34,6 +41,7 @@ export function subtotalCents(lines: PricedLine[]): number {
 
 export function shippingCents(subtotal: number, delivery: DeliveryId): number {
   if (delivery === 'express') return SHIPPING.express
+
   return subtotal >= FREE_SHIPPING_FROM_CENTS ? 0 : SHIPPING.standard
 }
 

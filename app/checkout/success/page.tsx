@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { CHECKOUT_SUCCESS_PAGE } from '@/checkout/routes'
 import { SuccessView } from '@/components/checkout/SuccessView'
 import { pageMetadata } from '@/lib/metadata'
 
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: 'Order placed',
     description: 'Confirmation for a demo order placed on this device.',
-    path: '/checkout/success/',
+    path: CHECKOUT_SUCCESS_PAGE,
   }),
   robots: { index: false, follow: true },
 }

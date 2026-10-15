@@ -17,6 +17,7 @@ export function Typographic({
   const ruleY = r(H * 0.62)
   const ruleWidth = r(W - 2 * M)
   const labelY = H - M
+
   return (
     <PosterRoot background={palette.background} rootProps={rootProps}>
       <text

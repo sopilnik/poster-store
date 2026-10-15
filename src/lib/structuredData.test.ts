@@ -4,6 +4,7 @@ import { absoluteUrl } from './siteServer'
 
 test('productJsonLd builds a Product node with an AggregateOffer spanning the sizes', () => {
   const product = productBySlug('quiet-hours')
+
   if (!product) throw new Error('fixture product missing')
 
   const node = productJsonLd(product)

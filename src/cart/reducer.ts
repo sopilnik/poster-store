@@ -14,6 +14,7 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
       const sku = skuOf(action.variant)
       const qty = clampQty(action.qty ?? 1)
       const existing = state.items.find(item => item.sku === sku)
+
       if (existing) {
         return {
           items: state.items.map(item =>
@@ -21,6 +22,7 @@ export function cartReducer(state: CartState, action: CartAction): CartState {
           ),
         }
       }
+
       return {
         items: [
           ...state.items,

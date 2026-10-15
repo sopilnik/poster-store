@@ -27,6 +27,7 @@ export function Poster({
       return <Blocks params={spec.params} palette={palette} rootProps={rootProps} />
     default: {
       const exhaustive: never = spec
+
       throw new Error(`Unknown template: ${String((exhaustive as PosterSpec).template)}`)
     }
   }

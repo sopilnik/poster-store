@@ -46,6 +46,7 @@ test('shows the cart lines once hydrated', () => {
 
   const product = requireProduct('quiet-hours')
   const lineCents = variantPriceCents(product, 'a2') * 1
+
   expect(screen.getByText(formatCents(lineCents), { selector: 'p' })).toBeInTheDocument()
 })
 
@@ -57,6 +58,7 @@ test('renders the shipping estimate from the shipping constants', () => {
   )
 
   const estimate = screen.getByText(/chosen at checkout/)
+
   expect(estimate).toHaveTextContent(formatDollars(SHIPPING.standard))
   expect(estimate).toHaveTextContent(formatDollars(FREE_SHIPPING_FROM_CENTS))
 })

@@ -1,4 +1,5 @@
 const strip = (u: string) => u.replace(/\/+$/, '')
+
 export const BRAND = 'Formline'
 export const REPO_URL = 'https://github.com/sopilnik/poster-store'
 export const AUTHOR_NAME = 'Alexandr Sopilnik'

@@ -59,6 +59,7 @@ function infiniteBodyRequest(url: string, extraHeaders: Record<string, string> =
       controller.enqueue(chunk)
     },
   })
+
   return new Request(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...extraHeaders },
@@ -70,6 +71,7 @@ function infiniteBodyRequest(url: string, extraHeaders: Record<string, string> =
 test('OPTIONS on the session route returns 204 with CORS headers for a cross-origin function', async () => {
   const request = new Request('https://api.example.test/checkout/session', { method: 'OPTIONS' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(204)
   expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:4321')
   expect(response.headers.get('Access-Control-Allow-Methods')).toBe('POST, GET, OPTIONS')
@@ -78,6 +80,7 @@ test('OPTIONS on the session route returns 204 with CORS headers for a cross-ori
 test('no CORS headers when the function shares the store origin', async () => {
   const request = new Request('http://localhost:4321/checkout/session', { method: 'OPTIONS' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull()
 })
 
@@ -88,6 +91,7 @@ test('POST with a valid body returns 200 and the session url', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(200)
   expect(response.headers.get('cache-control')).toBe('no-store')
   expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
@@ -102,6 +106,7 @@ test('POST with an unknown sku returns 400', async () => {
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'not-a-real-sku-a3-ink', qty: 1 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
@@ -112,6 +117,7 @@ test('POST with qty 0 returns 400', async () => {
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'quiet-hours-a3-ink', qty: 0 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
@@ -122,6 +128,7 @@ test('POST with qty 11 returns 400', async () => {
     body: JSON.stringify({ ...VALID_BODY, items: [{ sku: 'quiet-hours-a3-ink', qty: 11 }] }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
@@ -132,6 +139,7 @@ test('POST with a body over 8 KB returns 413, detected by content-length', async
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -142,6 +150,7 @@ test('POST with a malformed content-length header returns 413', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -155,6 +164,7 @@ test('POST with a hex-disguised content-length header does not bypass the 8 KB l
     body: JSON.stringify({ ...VALID_BODY, email: `${'a'.repeat(9 * 1024)}@example.com` }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -165,6 +175,7 @@ test('POST with a negative content-length header returns 413', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -175,18 +186,21 @@ test('POST with a body over 8 KB returns 413, detected by the actual body size',
     body: JSON.stringify({ ...VALID_BODY, email: `${'a'.repeat(9 * 1024)}@example.com` }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
 test('POST with an endless stream body on the session route returns 413', async () => {
   const request = infiniteBodyRequest('https://api.example.test/checkout/session')
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
 test('POST with an endless stream body on the webhook route returns 413', async () => {
   const request = infiniteBodyRequest('https://api.example.test/stripe/webhook', { 'stripe-signature': 'good-sig' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -203,6 +217,7 @@ test('webhook POST with a body under the 64 KB cap returns 200', async () => {
     body: JSON.stringify({ padding: 'a'.repeat(16 * 1024) }),
   })
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
+
   expect(response.status).toBe(200)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
 })
@@ -214,6 +229,7 @@ test('webhook POST with a body over the 64 KB cap returns 413', async () => {
     body: JSON.stringify({ padding: 'a'.repeat(65 * 1024) }),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(413)
 })
 
@@ -232,6 +248,7 @@ test('POST with a valid body returns 502 with the error shape and CORS header wh
       },
     })
   )
+
   expect(response.status).toBe(502)
   expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:4321')
   expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
@@ -246,6 +263,7 @@ test('POST with a non-JSON content type returns 415 without creating a session',
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory({ create }))
+
   expect(response.status).toBe(415)
   expect(create).not.toHaveBeenCalled()
 })
@@ -256,6 +274,7 @@ test('POST with no content type returns 415', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(415)
 })
 
@@ -267,6 +286,7 @@ test('POST with a foreign Origin header returns 403 without creating a session',
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory({ create }))
+
   expect(response.status).toBe(403)
   expect(create).not.toHaveBeenCalled()
 })
@@ -278,6 +298,7 @@ test('POST with the store\'s own Origin header succeeds', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(200)
 })
 
@@ -288,12 +309,14 @@ test('POST with no Origin header succeeds, keeping curl and the Stripe CLI worki
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(200)
 })
 
 test('GET with a valid session id returns the stripped status body', async () => {
   const request = new Request('https://api.example.test/checkout/session?id=cs_test_1', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(200)
   await expect(response.json()).resolves.toEqual({
     id: 'cs_test_1',
@@ -308,18 +331,21 @@ test('GET with a valid session id returns the stripped status body', async () =>
 test('GET with an id not starting with cs_ returns 400', async () => {
   const request = new Request('https://api.example.test/checkout/session?id=evt_not_a_session', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
 test('GET with no id returns 400', async () => {
   const request = new Request('https://api.example.test/checkout/session', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
 test('an unknown path returns 404', async () => {
   const request = new Request('https://api.example.test/checkout/nope', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(404)
   expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8')
   expect(response.headers.get('x-content-type-options')).toBe('nosniff')
@@ -332,12 +358,14 @@ test('a path with a prefix before a known route returns 404', async () => {
     body: JSON.stringify(VALID_BODY),
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(404)
 })
 
 test('a trailing slash on a known route is tolerated', async () => {
   const request = new Request('https://api.example.test/checkout/session/?id=cs_test_1', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(200)
   await expect(response.json()).resolves.toEqual({
     id: 'cs_test_1',
@@ -352,6 +380,7 @@ test('a trailing slash on a known route is tolerated', async () => {
 test('an unsupported method on the session route returns 405', async () => {
   const request = new Request('https://api.example.test/checkout/session', { method: 'DELETE' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(405)
 })
 
@@ -362,12 +391,14 @@ test('webhook POST with a bad signature returns 400', async () => {
     body: '{}',
   })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
 test('webhook POST with no signature header returns 400', async () => {
   const request = new Request('https://api.example.test/stripe/webhook', { method: 'POST', body: '{}' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(400)
 })
 
@@ -384,6 +415,7 @@ test('webhook POST with a verified checkout.session.completed event returns 200 
     body: '{}',
   })
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
+
   expect(response.status).toBe(200)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
 })
@@ -396,11 +428,13 @@ test('webhook POST with an unhandled event type still returns 200', async () => 
     body: '{}',
   })
   const response = await handle(request, ENV, makeStripeFactory({ constructEventAsync: async () => event }))
+
   expect(response.status).toBe(200)
 })
 
 test('a GET on the webhook route returns 405', async () => {
   const request = new Request('https://api.example.test/stripe/webhook', { method: 'GET' })
   const response = await handle(request, ENV, makeStripeFactory())
+
   expect(response.status).toBe(405)
 })

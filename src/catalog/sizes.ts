@@ -8,7 +8,9 @@ export const SIZES: Size[] = [
 
 export function sizeById(id: SizeId): Size {
   const size = SIZES.find(s => s.id === id)
+
   if (!size) throw new Error(`Unknown size: ${id}`)
+
   return size
 }
 

@@ -13,6 +13,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
   const subtotal = subtotalCents(lines)
   const delivery: DeliveryId = overrides.delivery ?? 'standard'
   const shipping = shippingCents(subtotal, delivery)
+
   return {
     id: 'FL-AB12C3',
     createdAt: '2026-01-01T00:00:00.000Z',

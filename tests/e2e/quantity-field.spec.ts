@@ -5,6 +5,7 @@ test('the quantity field takes focus and input at 390 px', async ({ page }) => {
   await page.goto('/products/quiet-hours/')
 
   const field = page.getByRole('textbox', { name: 'Quantity' })
+
   await field.dblclick()
   await expect(field).toBeFocused()
 

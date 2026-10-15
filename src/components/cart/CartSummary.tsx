@@ -3,6 +3,7 @@ import { cn } from 'cn'
 import { shippingCents, subtotalCents, totalCents } from '@/cart/totals'
 import type { DeliveryId, PricedLine } from '@/cart/types'
 import { DELIVERY_LABELS } from '@/cart/delivery'
+import { CHECKOUT_PAGE } from '@/checkout/routes'
 import { buttonVariants } from '@/components/ui/button'
 import { FREE_SHIPPING_FROM_CENTS, SHIPPING } from '@/catalog/sizes'
 import { formatCents, formatDollars } from '@/lib/money'
@@ -43,7 +44,7 @@ export function CartSummary({
       <p className="text-xs text-muted-foreground">{`Free standard shipping from ${formatDollars(FREE_SHIPPING_FROM_CENTS)}.`}</p>
       <p className="text-xs text-muted-foreground">Orders are not real and nothing is charged.</p>
       {estimate ? (
-        <Link href="/checkout/" className={cn(buttonVariants())}>
+        <Link href={CHECKOUT_PAGE} className={cn(buttonVariants())}>
           Checkout
         </Link>
       ) : null}

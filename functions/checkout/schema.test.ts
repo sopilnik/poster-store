@@ -27,11 +27,13 @@ test('an empty items array fails', () => {
 
 test('item lines over the cap fail', () => {
   const items = Array.from({ length: MAX_CART_LINES + 1 }, () => ({ sku: 'quiet-hours-a3-ink', qty: 1 }))
+
   expect(checkoutSessionSchema.safeParse({ ...VALID, items }).success).toBe(false)
 })
 
 test('item lines at the cap pass', () => {
   const items = Array.from({ length: MAX_CART_LINES }, () => ({ sku: 'quiet-hours-a3-ink', qty: 1 }))
+
   expect(checkoutSessionSchema.safeParse({ ...VALID, items }).success).toBe(true)
 })
 

@@ -4,6 +4,7 @@ import { COLLECTIONS } from '@/catalog/collections'
 import { MobileMenu } from './MobileMenu'
 
 let pathname = '/'
+
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
 }))
@@ -26,10 +27,13 @@ test('closes the sheet after a route change', async () => {
 
 test('the link of the current page carries aria-current', async () => {
   const [firstCollection] = COLLECTIONS
+
   if (!firstCollection) throw new Error('No collections configured')
 
   pathname = '/shop'
+
   const { unmount } = render(<MobileMenu />)
+
   await userEvent.click(screen.getByRole('button', { name: 'Menu' }))
   expect(screen.getByRole('link', { name: 'Shop' })).toHaveAttribute('aria-current', 'page')
   expect(screen.getByRole('link', { name: firstCollection.name })).not.toHaveAttribute('aria-current')

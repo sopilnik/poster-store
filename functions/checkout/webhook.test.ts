@@ -24,7 +24,8 @@ test('verifyWebhook rejects a bad signature', async () => {
   const stripe = fakeStripe(async () => {
     throw new Error('bad signature')
   })
-  await expect(verifyWebhook(stripe, '{}', 'bad-sig', 'whtest')).rejects.toThrow('bad signature')
+
+  await expect(verifyWebhook(stripe, { payload: '{}', signature: 'bad-sig', secret: 'whtest' })).rejects.toThrow('bad signature')
 })
 
 test('verifyWebhook returns the verified event on a good signature', async () => {
@@ -34,7 +35,8 @@ test('verifyWebhook returns the verified event on a good signature', async () =>
     data: { object: { id: 'cs_test_1', metadata: { orderId: 'FL-AB12C3' }, payment_status: 'paid' } },
   }
   const stripe = fakeStripe(async () => event)
-  await expect(verifyWebhook(stripe, '{}', 'good-sig', 'whtest')).resolves.toEqual(event)
+
+  await expect(verifyWebhook(stripe, { payload: '{}', signature: 'good-sig', secret: 'whtest' })).resolves.toEqual(event)
 })
 
 test('dispatchEvent logs the session id, order id and payment status for a completed checkout', () => {
@@ -44,6 +46,7 @@ test('dispatchEvent logs the session id, order id and payment status for a compl
     type: 'checkout.session.completed',
     data: { object: { id: 'cs_test_1', metadata: { orderId: 'FL-AB12C3' }, payment_status: 'paid' } },
   }
+
   dispatchEvent(event)
   expect(logSpy).toHaveBeenCalledWith('checkout.session.completed', 'cs_test_1', 'FL-AB12C3', 'paid')
 })
@@ -55,6 +58,7 @@ test('dispatchEvent is a no-op for other event types', () => {
     type: 'payment_intent.succeeded',
     data: { object: { id: 'pi_1' } },
   }
+
   dispatchEvent(event)
   expect(logSpy).not.toHaveBeenCalled()
 })

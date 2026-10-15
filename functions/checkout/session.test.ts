@@ -8,6 +8,8 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+const ORDER_ID = 'FL-AB12C3'
+
 const ENV: Env = {
   STRIPE_SECRET_KEY: 'sk_test_secret',
   STRIPE_WEBHOOK_SECRET: 'test-webhook-secret',
@@ -23,14 +25,16 @@ function fakeStripe(overrides: Partial<StripeLike> = {}): StripeLike & { calls: 
     payment_status: 'paid',
     amount_total: 3800,
     currency: 'usd',
-    metadata: { orderId: 'FL-AB12C3' },
+    metadata: { orderId: ORDER_ID },
   }
+
   return {
     calls,
     checkout: {
       sessions: {
         create: async (params, options) => {
           calls.create.push({ params, options })
+
           return created
         },
         retrieve: async () => retrieved,
@@ -58,8 +62,10 @@ const CART_EXPRESS = { items: [{ sku: 'ninety-six-a2-paper', qty: 3 }], delivery
 for (const cart of [CART_BELOW_FREE_SHIPPING, CART_ABOVE_FREE_SHIPPING, CART_EXPRESS]) {
   test(`buildLineItems totals match totalCents for ${cart.items.map(i => i.sku).join(',')}`, () => {
     const result = buildLineItems(cart.items, cart.delivery, ENV.SITE_URL)
+
     expect(result.ok).toBe(true)
     if (!result.ok) return
+
     const lineItemsTotal = result.lineItems.reduce(
       (sum, item) => sum + item.price_data.unit_amount * item.quantity,
       0
@@ -68,6 +74,7 @@ for (const cart of [CART_BELOW_FREE_SHIPPING, CART_ABOVE_FREE_SHIPPING, CART_EXP
       (sum, option) => sum + option.shipping_rate_data.fixed_amount.amount,
       0
     )
+
     expect(lineItemsTotal + shippingTotal).toBe(computeTotalCents(lineItemsTotal, cart.delivery))
     expect(result.totalCents).toBe(lineItemsTotal + shippingTotal)
   })
@@ -75,6 +82,7 @@ for (const cart of [CART_BELOW_FREE_SHIPPING, CART_ABOVE_FREE_SHIPPING, CART_EXP
 
 test('buildLineItems returns the free-shipping amount for the above-threshold cart', () => {
   const result = buildLineItems(CART_ABOVE_FREE_SHIPPING.items, CART_ABOVE_FREE_SHIPPING.delivery, ENV.SITE_URL)
+
   expect(result.ok).toBe(true)
   if (!result.ok) return
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(0)
@@ -83,6 +91,7 @@ test('buildLineItems returns the free-shipping amount for the above-threshold ca
 
 test('buildLineItems returns the express amount regardless of subtotal', () => {
   const result = buildLineItems(CART_EXPRESS.items, CART_EXPRESS.delivery, ENV.SITE_URL)
+
   expect(result.ok).toBe(true)
   if (!result.ok) return
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(1900)
@@ -91,6 +100,7 @@ test('buildLineItems returns the express amount regardless of subtotal', () => {
 
 test('buildLineItems returns the standard amount and a literal total for the below-threshold cart', () => {
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, CART_BELOW_FREE_SHIPPING.delivery, ENV.SITE_URL)
+
   expect(result.ok).toBe(true)
   if (!result.ok) return
   expect(result.shippingOptions[0]?.shipping_rate_data.fixed_amount.amount).toBe(900)
@@ -99,11 +109,13 @@ test('buildLineItems returns the standard amount and a literal total for the bel
 
 test('buildLineItems fails on an unknown sku', () => {
   const result = buildLineItems([{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], 'standard', ENV.SITE_URL)
+
   expect(result).toEqual({ ok: false })
 })
 
 test('buildLineItems includes no product image over http', () => {
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, 'standard', 'http://localhost:4321')
+
   expect(result.ok).toBe(true)
   if (!result.ok) return
   expect(result.lineItems[0]?.price_data.product_data.images).toBeUndefined()
@@ -111,6 +123,7 @@ test('buildLineItems includes no product image over http', () => {
 
 test('buildLineItems includes the product image over https', () => {
   const result = buildLineItems(CART_BELOW_FREE_SHIPPING.items, 'standard', 'https://example.test')
+
   expect(result.ok).toBe(true)
   if (!result.ok) return
   expect(result.lineItems[0]?.price_data.product_data.images).toEqual([
@@ -119,32 +132,37 @@ test('buildLineItems includes the product image over https', () => {
 })
 
 test('idempotencyKey is stable for the same order', async () => {
-  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard')
-  const b = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard')
+  const a = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' })
+  const b = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' })
+
   expect(a).toBe(b)
 })
 
 test('idempotencyKey changes when an item changes', async () => {
-  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard')
-  const b = await idempotencyKey('FL-AB12C3', [{ sku: 'quiet-hours-a3-ink', qty: 2 }], 'standard')
+  const a = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' })
+  const b = await idempotencyKey({ orderId: ORDER_ID, items: [{ sku: 'quiet-hours-a3-ink', qty: 2 }], delivery: 'standard' })
+
   expect(a).not.toBe(b)
 })
 
 test('idempotencyKey does not depend on item order', async () => {
-  const a = await idempotencyKey('FL-AB12C3', CART_ABOVE_FREE_SHIPPING.items, 'standard')
-  const b = await idempotencyKey('FL-AB12C3', [...CART_ABOVE_FREE_SHIPPING.items].reverse(), 'standard')
+  const a = await idempotencyKey({ orderId: ORDER_ID, items: CART_ABOVE_FREE_SHIPPING.items, delivery: 'standard' })
+  const b = await idempotencyKey({ orderId: ORDER_ID, items: [...CART_ABOVE_FREE_SHIPPING.items].reverse(), delivery: 'standard' })
+
   expect(a).toBe(b)
 })
 
 test('idempotencyKey changes when only the email differs on an otherwise identical order', async () => {
-  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
-  const b = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'other@example.com')
+  const a = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' })
+  const b = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'other@example.com' })
+
   expect(a).not.toBe(b)
 })
 
 test('idempotencyKey differs between no email and an empty email', async () => {
-  const a = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard')
-  const b = await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
+  const a = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' })
+  const b = await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' })
+
   expect(a).not.toBe(b)
 })
 
@@ -152,12 +170,15 @@ test('createSession sends the total as line items plus one shipping option and p
   const stripe = fakeStripe()
   const result = await createSession(
     stripe,
-    { orderId: 'FL-AB12C3', items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' },
+    { orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' },
     ENV
   )
+
   expect(result).toEqual({ ok: true, url: 'https://checkout.stripe.test/s', id: 'cs_test_1' })
   expect(stripe.calls.create).toHaveLength(1)
+
   const call = stripe.calls.create[0] as { params: import('./session').CheckoutSessionParams; options: { idempotencyKey: string } }
+
   expect(call.params.mode).toBe('payment')
   expect(call.params.line_items).toHaveLength(1)
   expect(call.params.shipping_options).toHaveLength(1)
@@ -165,23 +186,26 @@ test('createSession sends the total as line items plus one shipping option and p
   expect(call.params.cancel_url).toBe('http://localhost:4321/checkout/')
   expect(call.params.metadata).toEqual({ orderId: 'FL-AB12C3' })
   expect(call.params.customer_email).toBeUndefined()
-  expect(call.options.idempotencyKey).toBe(await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard'))
+  expect(call.options.idempotencyKey).toBe(await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' }))
 })
 
 test('createSession sets customer_email only when an email is given', async () => {
   const stripe = fakeStripe()
+
   await createSession(
     stripe,
-    { orderId: 'FL-AB12C3', items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' },
+    { orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' },
     ENV
   )
+
   const call = stripe.calls.create[0] as {
     params: import('./session').CheckoutSessionParams
     options: { idempotencyKey: string }
   }
+
   expect(call.params.customer_email).toBe('buyer@example.com')
   expect(call.options.idempotencyKey).toBe(
-    await idempotencyKey('FL-AB12C3', CART_BELOW_FREE_SHIPPING.items, 'standard', 'buyer@example.com')
+    await idempotencyKey({ orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard', email: 'buyer@example.com' })
   )
 })
 
@@ -189,9 +213,10 @@ test('createSession rejects an unknown sku without calling stripe', async () => 
   const stripe = fakeStripe()
   const result = await createSession(
     stripe,
-    { orderId: 'FL-AB12C3', items: [{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], delivery: 'standard' },
+    { orderId: ORDER_ID, items: [{ sku: 'not-a-real-sku-a3-ink', qty: 1 }], delivery: 'standard' },
     ENV
   )
+
   expect(result).toEqual({ ok: false, status: 400, error: 'Unknown SKU' })
   expect(stripe.calls.create).toHaveLength(0)
 })
@@ -211,21 +236,24 @@ test('createSession returns 502 when stripe.checkout.sessions.create throws', as
   })
   const result = await createSession(
     stripe,
-    { orderId: 'FL-AB12C3', items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' },
+    { orderId: ORDER_ID, items: CART_BELOW_FREE_SHIPPING.items, delivery: 'standard' },
     ENV
   )
+
   expect(result).toEqual({ ok: false, status: 502, error: 'Could not create a checkout session' })
 })
 
 test('getSession rejects an id not starting with cs_', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, 'evt_not_a_session')
+
   expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
 })
 
 test('getSession rejects an over-long id without calling stripe', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, `cs_${'a'.repeat(5 * 1024)}`)
+
   expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
   expect(stripe.calls.create).toHaveLength(0)
 })
@@ -233,12 +261,14 @@ test('getSession rejects an over-long id without calling stripe', async () => {
 test('getSession rejects an id with characters outside the allowed shape', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, 'cs_test_1; DROP TABLE sessions')
+
   expect(result).toEqual({ ok: false, status: 400, error: 'Invalid session id' })
 })
 
 test('getSession strips address and email, keeping only status fields', async () => {
   const stripe = fakeStripe()
   const result = await getSession(stripe, 'cs_test_1')
+
   expect(result).toEqual({
     ok: true,
     body: {
@@ -264,6 +294,7 @@ test('getSession returns 404 when stripe reports the session as missing', async 
     },
   })
   const result = await getSession(stripe, 'cs_missing')
+
   expect(result).toEqual({ ok: false, status: 404, error: 'Session not found' })
 })
 
@@ -280,6 +311,7 @@ test('getSession returns 502 and logs when the retrieve call fails with a Stripe
     },
   })
   const result = await getSession(stripe, 'cs_test_1')
+
   expect(result).toEqual({ ok: false, status: 502, error: 'Session lookup failed' })
   expect(errorSpy).toHaveBeenCalledOnce()
 })
@@ -297,8 +329,11 @@ test('getSession returns 502 and logs when the retrieve call throws a network er
     },
   })
   const result = await getSession(stripe, 'cs_test_1')
+
   expect(result).toEqual({ ok: false, status: 502, error: 'Session lookup failed' })
   expect(errorSpy).toHaveBeenCalledOnce()
+
   const loggedArgs = errorSpy.mock.calls[0]
+
   expect(loggedArgs?.some(arg => typeof arg === 'string' && arg.includes('socket hang up'))).toBe(true)
 })

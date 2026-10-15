@@ -22,8 +22,10 @@ const UNBIASED_LIMIT = 256 - (256 % ALPHABET.length)
 
 export function makeOrderId(random: (n: number) => Uint8Array = n => globalThis.crypto.getRandomValues(new Uint8Array(n))): string {
   let suffix = ''
+
   while (suffix.length < ID_LENGTH) {
     const bytes = random(ID_LENGTH * 2)
+
     if (bytes.length === 0) {
       throw new Error('makeOrderId: the byte source returned no bytes')
     }
@@ -37,12 +39,14 @@ export function makeOrderId(random: (n: number) => Uint8Array = n => globalThis.
       suffix += ALPHABET.charAt(byte % ALPHABET.length)
     }
   }
+
   return `FL-${suffix}`
 }
 
 export function buildOrder(input: CheckoutInput, lines: PricedLine[], now: string): Order {
   const subtotal = computeSubtotalCents(lines)
   const shipping = computeShippingCents(subtotal, input.delivery)
+
   return {
     id: makeOrderId(),
     createdAt: now,

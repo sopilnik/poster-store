@@ -14,6 +14,7 @@ test('saveCart then loadCart round-trips', () => {
   const items: CartItem[] = [
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 3 },
   ]
+
   saveCart(items)
   expect(loadCart()).toEqual(items)
 })
@@ -47,7 +48,9 @@ test('two stored entries of one sku merge into one item with the summed qty', ()
       { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 3 },
     ])
   )
+
   const items = loadCart()
+
   expect(items).toHaveLength(1)
   expect(items[0]?.qty).toBe(7)
 })
@@ -60,7 +63,9 @@ test('two stored entries of one sku past the cap merge and clamp to MAX_QTY', ()
       { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 8 },
     ])
   )
+
   const items = loadCart()
+
   expect(items).toHaveLength(1)
   expect(items[0]?.qty).toBe(MAX_QTY)
 })
@@ -73,7 +78,9 @@ test('two stored entries of one sku with a non-finite qty merge and clamp to MAX
     '[{"sku":"quiet-hours-a2-ink","productSlug":"quiet-hours","sizeId":"a2","paletteId":"ink","qty":1e400},' +
       '{"sku":"quiet-hours-a2-ink","productSlug":"quiet-hours","sizeId":"a2","paletteId":"ink","qty":-1e400}]'
   )
+
   const items = loadCart()
+
   expect(items).toHaveLength(1)
   expect(items[0]?.qty).toBe(MAX_QTY)
 })

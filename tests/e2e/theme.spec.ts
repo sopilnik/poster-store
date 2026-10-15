@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 
 test('the chosen theme survives a reload', async ({ page }) => {
   await page.goto('/')
+
   const html = page.locator('html')
 
   await page.getByRole('radio', { name: 'Dark' }).click()
@@ -24,14 +25,19 @@ test('an invalid field keeps the destructive border at full strength in the dark
   await page.getByRole('button', { name: /^Place demo order · \$/ }).click()
 
   const field = page.getByLabel('Email')
+
   await expect(field).toHaveAttribute('aria-invalid', 'true')
 
   const destructiveColor = await page.evaluate(() => {
     const probe = document.createElement('div')
+
     probe.style.color = 'var(--destructive)'
     document.body.appendChild(probe)
+
     const destructive = getComputedStyle(probe).color
+
     probe.remove()
+
     return destructive
   })
 

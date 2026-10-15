@@ -10,6 +10,7 @@ beforeEach(() => {
 
 test('renders nothing when there is no session id', () => {
   const { container } = render(<PaymentStatus sessionId={null} orderId="FL-AAAAAA" />)
+
   expect(container).toBeEmptyDOMElement()
 })
 
@@ -47,7 +48,9 @@ test('renders "Payment not completed" when the reply names a different order', a
       json: async () => ({ payment_status: 'paid', amount_total: 1200, orderId: 'FL-BBBBBB' }),
     }))
   )
+
   const onPaid = vi.fn()
+
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={onPaid} />)
 
   expect(await screen.findByText('Payment not completed')).toBeInTheDocument()
@@ -62,7 +65,9 @@ test('renders the paid status and calls onPaid when the reply names this order',
       json: async () => ({ payment_status: 'paid', amount_total: 1200, orderId: 'FL-BBBBBB' }),
     }))
   )
+
   const onPaid = vi.fn()
+
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-BBBBBB" onPaid={onPaid} />)
 
   expect(await screen.findByText('Paid (test mode) · $12.00')).toBeInTheDocument()
@@ -118,6 +123,7 @@ test('fetches the session by the given id', async () => {
     ok: true,
     json: async () => ({ payment_status: 'paid', amount_total: 100, orderId: 'FL-AAAAAA' }),
   }))
+
   vi.stubGlobal('fetch', fetchMock)
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" />)
 
@@ -128,8 +134,11 @@ test('fetches the session by the given id', async () => {
 
 test('renders nothing and never fetches when no checkout API is configured', async () => {
   vi.mocked(hasCheckoutApi).mockReturnValue(false)
+
   const fetchMock = vi.fn()
+
   vi.stubGlobal('fetch', fetchMock)
+
   const { container } = render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" />)
 
   expect(container).toBeEmptyDOMElement()
@@ -144,7 +153,9 @@ test('calls onPaid once the session resolves as paid', async () => {
       json: async () => ({ payment_status: 'paid', amount_total: 3800, orderId: 'FL-AAAAAA' }),
     }))
   )
+
   const onPaid = vi.fn()
+
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={onPaid} />)
 
   await waitFor(() => {
@@ -160,7 +171,9 @@ test('does not call onPaid when the session is not paid', async () => {
       json: async () => ({ payment_status: 'unpaid', amount_total: null, orderId: null }),
     }))
   )
+
   const onPaid = vi.fn()
+
   render(<PaymentStatus sessionId="cs_test_1" orderId="FL-AAAAAA" onPaid={onPaid} />)
 
   await screen.findByText('Payment not completed')
@@ -176,6 +189,7 @@ test('does not refetch when onPaid changes identity across re-renders, and calls
         resolveJson = resolve
       }),
   }))
+
   vi.stubGlobal('fetch', fetchMock)
 
   const firstOnPaid = vi.fn()

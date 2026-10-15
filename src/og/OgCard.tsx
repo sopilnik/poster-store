@@ -16,11 +16,13 @@ export type OgCardProps = {
 
 function PosterBlock({ poster, palette }: { poster?: PosterSpec; palette?: Palette }) {
   if (!poster || !palette) return null
+
   const fit = Math.min(340 / 1000, 550 / 1414)
   const width = 1000 * fit
   const height = 1414 * fit
   const x = 40 + (340 - width) / 2
   const y = 40 + (550 - height) / 2
+
   return (
     <>
       <Poster spec={poster} palette={palette} rootProps={{ x, y, width, height }} />

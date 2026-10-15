@@ -7,11 +7,14 @@ import { toast } from 'sonner'
 import { useCart } from '@/cart/CartProvider'
 import { priceLines } from '@/cart/totals'
 import { MAX_CART_LINES } from '@/checkout/limits'
+import { CHECKOUT_SUCCESS_PAGE, SESSION_ROUTE } from '@/checkout/routes'
 import { buildOrder } from '@/checkout/order'
 import type { CheckoutInput } from '@/checkout/schema'
 import { clearOrder, loadOrder, saveOrder } from '@/checkout/storage'
 import { CHECKOUT_API } from '@/lib/site'
 import { CheckoutForm } from './CheckoutForm'
+
+const JSON_REQUEST_HEADERS = { 'content-type': 'application/json' }
 
 function isStripeUrl(target: URL): boolean {
   return target.protocol === 'https:' && (target.hostname === 'stripe.com' || target.hostname.endsWith('.stripe.com'))
@@ -32,10 +35,13 @@ export function CheckoutPageClient() {
 
   const restorePendingOrder = useCallback((): boolean => {
     if (items.length !== 0) return false
+
     const stored = loadOrder()
+
     if (stored?.paymentStatus !== 'pending') return false
     dispatch({ type: 'replace', items: stored.items })
     clearOrder()
+
     return true
   }, [items, dispatch])
 
@@ -60,6 +66,7 @@ export function CheckoutPageClient() {
       restorePendingOrder()
     }
     window.addEventListener('pageshow', handlePageShow)
+
     return () => window.removeEventListener('pageshow', handlePageShow)
   }, [restorePendingOrder])
 
@@ -73,7 +80,7 @@ export function CheckoutPageClient() {
     return (
       <div className="mt-6 flex flex-col items-start gap-2">
         <p className="text-sm text-muted-foreground">Your order was placed.</p>
-        <Link href="/checkout/success/" className="text-sm text-primary hover:underline">
+        <Link href={CHECKOUT_SUCCESS_PAGE} className="text-sm text-primary hover:underline">
           View confirmation
         </Link>
       </div>
@@ -97,14 +104,15 @@ export function CheckoutPageClient() {
     if (input.payment === 'stripe') {
       if (order.items.length > MAX_CART_LINES) {
         toast(`Card payment takes up to ${MAX_CART_LINES} different items. Remove some, or place a demo order.`)
+
         return
       }
 
       saveOrder({ ...order, payment: 'stripe', paymentStatus: 'pending' })
       try {
-        const response = await fetch(`${CHECKOUT_API}/checkout/session`, {
+        const response = await fetch(`${CHECKOUT_API}${SESSION_ROUTE}`, {
           method: 'POST',
-          headers: { 'content-type': 'application/json' },
+          headers: JSON_REQUEST_HEADERS,
           body: JSON.stringify({
             orderId: order.id,
             items: order.items.map(line => ({ sku: line.sku, qty: line.qty })),
@@ -112,10 +120,13 @@ export function CheckoutPageClient() {
             email: input.email,
           }),
         })
+
         if (!response.ok) throw new Error('checkout session request failed')
+
         const data: unknown = await response.json()
         const url = data && typeof data === 'object' ? (data as Record<string, unknown>).url : undefined
         const target = typeof url === 'string' ? new URL(url) : null
+
         if (!target || !isStripeUrl(target)) {
           throw new Error('checkout session response did not include a Stripe url')
         }
@@ -126,12 +137,13 @@ export function CheckoutPageClient() {
         clearOrder()
         toast('Card payment is unavailable right now. You can place a demo order instead.')
       }
+
       return
     }
 
     saveOrder({ ...order, payment: 'demo' })
     dispatch({ type: 'clear' })
-    router.push('/checkout/success/')
+    router.push(CHECKOUT_SUCCESS_PAGE)
   }
 
   return (

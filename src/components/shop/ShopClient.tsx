@@ -38,11 +38,13 @@ export function ShopClient({ products }: { products: Product[] }) {
   useEffect(() => {
     function sync() {
       const next = parseShopQuery(window.location.search)
+
       setQuery(next)
       setSearchText(next.q)
     }
     sync()
     window.addEventListener('popstate', sync)
+
     return () => {
       window.removeEventListener('popstate', sync)
       clearPending()
@@ -71,6 +73,7 @@ export function ShopClient({ products }: { products: Product[] }) {
     clearPending()
     if (value === 'all') {
       update({ sort: query.sort, q: searchText })
+
       return
     }
     if (isCollectionSlug(value)) update({ ...query, q: searchText, collection: value })

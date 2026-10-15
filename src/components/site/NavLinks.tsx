@@ -26,6 +26,7 @@ export function NavLinks({ linkClassName }: NavLinksProps) {
     <>
       {links.map(({ href, label }) => {
         const current = isCurrent(href)
+
         return (
           <Link
             key={href}

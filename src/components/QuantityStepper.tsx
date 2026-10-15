@@ -34,14 +34,18 @@ export function QuantityStepper({
 
   function handleChange(raw: string) {
     if (!/^\d*$/.test(raw)) return
+
     const n = Number(raw)
+
     if (raw === '' || n === 0) {
       setDraft(raw)
+
       return
     }
     if (n > MAX_QTY) {
       setDraft(String(MAX_QTY))
       onChange(MAX_QTY)
+
       return
     }
     setDraft(String(n))

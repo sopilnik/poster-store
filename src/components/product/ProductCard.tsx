@@ -7,6 +7,7 @@ import type { Product } from '@/catalog/types'
 
 export function ProductCard({ product, eager = false }: { product: Product; eager?: boolean }) {
   const collection = collectionBySlug(product.collection)
+
   return (
     <Link
       href={`/products/${product.slug}/`}

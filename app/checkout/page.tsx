@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { CHECKOUT_PAGE } from '@/checkout/routes'
 import { CheckoutPageClient } from '@/components/checkout/CheckoutPageClient'
 import { pageMetadata } from '@/lib/metadata'
 
@@ -6,7 +7,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: 'Checkout',
     description: 'Enter a shipping address and place a demo order.',
-    path: '/checkout/',
+    path: CHECKOUT_PAGE,
   }),
   robots: { index: false, follow: true },
 }

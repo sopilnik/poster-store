@@ -14,6 +14,7 @@ const CARD_MAX = 80 * 1024
 const OG_MAX = 300 * 1024
 const posters = path.resolve('public/posters')
 const og = path.resolve('public/og')
+
 mkdirSync(posters, { recursive: true })
 mkdirSync(og, { recursive: true })
 
@@ -27,7 +28,9 @@ function write(file: string, png: Buffer, max: number) {
 
 for (const p of PRODUCTS) {
   const palette = PALETTES[p.palettes[0]]
+
   write(path.join(posters, `${p.slug}.png`), rasterize(renderPosterMarkup(p, palette), { width: CARD_W }), CARD_MAX)
+
   const card = ogCardMarkup({
     title: p.name,
     subtitle: COLLECTIONS.find(c => c.slug === p.collection)!.name,
@@ -35,11 +38,13 @@ for (const p of PRODUCTS) {
     poster: p,
     palette,
   })
+
   write(path.join(og, `${p.slug}.png`), rasterize(card, { width: 1200 }), OG_MAX)
 }
 
 for (const c of COLLECTIONS) {
   const rep = PRODUCTS.find(p => p.slug === c.representative)!
+
   write(
     path.join(og, `${c.slug}.png`),
     rasterize(
@@ -52,6 +57,7 @@ for (const c of COLLECTIONS) {
 
 const featuredCollection = COLLECTIONS[0]!
 const featuredProduct = PRODUCTS.find(p => p.slug === featuredCollection.representative)!
+
 write(
   path.join(og, 'default.png'),
   rasterize(

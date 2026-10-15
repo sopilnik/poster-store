@@ -51,17 +51,21 @@ const securityHeaders = {
  */
 async function resolve(urlPath) {
   let decoded
+
   try {
     decoded = decodeURIComponent(/** @type {string} */ (urlPath.split('?')[0]))
   } catch {
     return { file: path.join(root, '404.html'), status: 404 }
   }
+
   const clean = path.normalize(decoded).replace(/^(\.\.[/\\])+/, '')
   const candidates = clean.endsWith('/')
     ? [path.join(root, clean, 'index.html')]
     : [path.join(root, clean), path.join(root, clean, 'index.html')]
+
   for (const c of candidates) {
     const rel = path.relative(root, c)
+
     if (rel.startsWith('..') || path.isAbsolute(rel)) continue
     try {
       if ((await stat(c)).isFile()) return { file: c, status: 200 }
@@ -69,18 +73,21 @@ async function resolve(urlPath) {
       // a stat failure here just means "try the next candidate"
     }
   }
+
   return { file: path.join(root, '404.html'), status: 404 }
 }
 
 const server = createServer(async (req, res) => {
   const { file, status } = await resolve(req.url ?? '/')
   const body = await readFile(file).catch(() => null)
+
   if (!body) {
     res.writeHead(404, {
       ...securityHeaders,
       'content-type': 'text/plain; charset=utf-8',
       'cache-control': 'no-store',
     })
+
     return res.end('not found')
   }
   res.writeHead(status, {

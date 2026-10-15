@@ -12,7 +12,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const collection = collectionBySlug(slug)
+
   if (!collection) return {}
+
   return pageMetadata({
     title: collection.name,
     description: collection.description,
@@ -24,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CollectionPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const collection = collectionBySlug(slug)
+
   if (!collection) notFound()
 
   const products = PRODUCTS.filter(p => p.collection === collection.slug)

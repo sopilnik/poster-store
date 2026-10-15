@@ -17,6 +17,7 @@ function lines() {
   const items: CartItem[] = [
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 1 },
   ]
+
   return priceLines(items)
 }
 
@@ -28,6 +29,7 @@ test('the order summary is exposed as a named region', () => {
 
 test('submitting the empty form shows every required-field message', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
+
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
 
   await userEvent.click(screen.getByRole('button', { name: /place demo order/i }))
@@ -46,6 +48,7 @@ test('submitting the empty form shows every required-field message', async () =>
 
 test('submitting empty moves focus to the first invalid field', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
+
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
 
   await userEvent.click(screen.getByRole('button', { name: /place demo order/i }))
@@ -57,6 +60,7 @@ test('submitting empty moves focus to the first invalid field', async () => {
 
 test('filling valid values and choosing express calls onSubmit once with delivery express', async () => {
   const onSubmit = vi.fn<(input: CheckoutInput) => void>()
+
   render(<CheckoutForm lines={lines()} onSubmit={onSubmit} />)
 
   await fillCheckoutForm(userEvent)
@@ -104,6 +108,7 @@ test('the Stripe radio is described by its test-card hint for screen readers', (
   render(<CheckoutForm lines={lines()} onSubmit={vi.fn()} />)
 
   const radio = screen.getByRole('radio', { name: /card via stripe/i })
+
   expect(radio).toHaveAttribute('aria-describedby', 'stripe-hint')
   expect(document.getElementById('stripe-hint')).toHaveTextContent(/use card number 4242 4242 4242 4242/i)
 })

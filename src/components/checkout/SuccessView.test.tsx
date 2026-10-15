@@ -16,7 +16,9 @@ test('the no-order branch still renders a heading', async () => {
 
 test('a paid session persists paymentStatus paid on the stored order', async () => {
   window.history.replaceState(null, '', '/checkout/success/?session_id=cs_test_1')
+
   const order = makeOrder()
+
   saveOrder(order)
   vi.stubGlobal(
     'fetch',
@@ -35,7 +37,9 @@ test('a paid session persists paymentStatus paid on the stored order', async () 
 
 test('a session naming a different order does not mark the stored order paid', async () => {
   window.history.replaceState(null, '', '/checkout/success/?session_id=cs_test_1')
+
   const order = makeOrder()
+
   saveOrder(order)
   vi.stubGlobal(
     'fetch',

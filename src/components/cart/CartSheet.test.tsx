@@ -5,6 +5,7 @@ import { CartSheet } from './CartSheet'
 import type { CartAction, CartContextValue } from '@/cart/types'
 
 let pathname = '/cart/'
+
 vi.mock('next/navigation', () => ({
   usePathname: () => pathname,
 }))
@@ -15,6 +16,7 @@ function contextValue(close: () => void): CartContextValue {
 
 function OpenButton() {
   const { open } = useCart()
+
   return (
     <button type="button" onClick={open}>
       open
@@ -33,6 +35,7 @@ test('closes the sheet when the route changes', () => {
       <CartSheet />
     </CartContext.Provider>
   )
+
   expect(close.mock.calls.length).toBe(1)
 
   rerender(

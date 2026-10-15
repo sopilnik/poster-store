@@ -191,6 +191,8 @@ export function productBySlug(slug: string): Product | undefined {
 
 export function requireProduct(slug: string): Product {
   const product = productBySlug(slug)
+
   if (!product) throw new Error(`Unknown product slug: ${slug}`)
+
   return product
 }

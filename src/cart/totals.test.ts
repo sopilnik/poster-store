@@ -7,6 +7,7 @@ test('priceLines prices a known sku and drops one whose sku does not parse', () 
     { sku: 'nope-a2-ink', productSlug: 'nope', sizeId: 'a2', paletteId: 'ink', qty: 1 },
   ]
   const lines = priceLines(items)
+
   expect(lines).toHaveLength(1)
   expect(lines[0]?.unitCents).toBe(4500)
 })
@@ -15,6 +16,7 @@ test('subtotalCents sums the line totals', () => {
   const lines = priceLines([
     { sku: 'quiet-hours-a2-ink', productSlug: 'quiet-hours', sizeId: 'a2', paletteId: 'ink', qty: 2 },
   ])
+
   expect(subtotalCents(lines)).toBe(9000)
 })
 
@@ -35,5 +37,6 @@ test('unitCount sums quantities across items', () => {
     { sku: 'a', productSlug: 'a', sizeId: 'a3', paletteId: 'ink', qty: 2 },
     { sku: 'b', productSlug: 'b', sizeId: 'a3', paletteId: 'ink', qty: 3 },
   ]
+
   expect(unitCount(items)).toBe(5)
 })

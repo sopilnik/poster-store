@@ -21,7 +21,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const product = productBySlug(slug)
+
   if (!product) return {}
+
   return pageMetadata({
     title: product.name,
     description: product.description,
@@ -33,6 +35,7 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const product = productBySlug(slug)
+
   if (!product) notFound()
 
   const collection = collectionBySlug(product.collection)

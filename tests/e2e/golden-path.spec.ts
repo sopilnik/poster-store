@@ -33,10 +33,12 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await page.getByRole('button', { name: 'Add to cart' }).click()
 
   const openCart = page.getByRole('button', { name: 'Open cart' })
+
   await expect(openCart).toBeVisible()
   await openCart.click()
 
   const cart = page.getByRole('dialog')
+
   await expect(cart.getByText('Hush', { exact: true })).toBeVisible()
   await expect(cart.getByText(/^A2/)).toBeVisible()
   await expect(cart.getByRole('textbox', { name: 'Quantity of Hush, A2' })).toHaveValue('3')
@@ -46,6 +48,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await expect(cart).toBeHidden()
 
   const summary = page.getByRole('region', { name: 'Order summary' })
+
   await expect(summary.getByText('Total', { exact: true })).toBeVisible()
 
   await page.getByLabel('Email').fill('demo@example.com')
@@ -56,6 +59,7 @@ test('browse, filter, buy a poster, and confirm the order', async ({ page }) => 
   await page.getByRole('radio', { name: /^Express/ }).click()
 
   const submit = page.getByRole('button', { name: /^Place demo order · \$/ })
+
   await expect(submit).toBeVisible()
   await expect(summary.getByText('$19.00', { exact: true })).toBeVisible()
 

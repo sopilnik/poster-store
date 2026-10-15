@@ -27,10 +27,12 @@ test('keeps preview URLs off', () => {
 
 test('routes only the custom domain', () => {
   expect(lines).toContain('routes = [{ pattern = "formline-api.sopilnik.dev", custom_domain = true }]')
+
   const otherRouteLines = lines.filter(
     (line) => line !== 'routes = [{ pattern = "formline-api.sopilnik.dev", custom_domain = true }]'
       && (line.startsWith('routes') || line.startsWith('route =') || line.startsWith('[[routes]]')),
   )
+
   expect(otherRouteLines).toEqual([])
 })
 
@@ -41,5 +43,6 @@ test('has no other trigger', () => {
       || line.startsWith('[[services]]')
       || line.startsWith('[env.'),
   )
+
   expect(otherTriggerLines).toEqual([])
 })

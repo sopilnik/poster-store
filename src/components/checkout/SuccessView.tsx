@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { useEffect, useReducer } from 'react'
 import type { Order } from '@/checkout/order'
+import { RETURNED_SESSION_PARAM } from '@/checkout/routes'
 import { loadOrder, saveOrder } from '@/checkout/storage'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
 import { PaymentStatus } from './PaymentStatus'
+import { ORDER_THUMBNAIL } from './thumbnail'
 
 type MountState =
   | { mounted: false; sessionId: null; order: null }
@@ -25,14 +27,17 @@ function mountReducer(state: MountState, action: MountAction): MountState {
 
 export function SuccessView() {
   const [{ sessionId, order }, dispatch] = useReducer(mountReducer, { mounted: false, sessionId: null, order: null })
+
   useEffect(() => {
-    const sid = new URLSearchParams(window.location.search).get('session_id')
+    const sid = new URLSearchParams(window.location.search).get(RETURNED_SESSION_PARAM)
+
     dispatch({ type: 'mount', sessionId: sid, order: loadOrder() })
   }, [])
 
   function handlePaid() {
     if (order && order.paymentStatus !== 'paid') {
       const paid = { ...order, paymentStatus: 'paid' as const }
+
       saveOrder(paid)
       dispatch({ type: 'paid', order: paid })
     }
@@ -65,7 +70,7 @@ export function SuccessView() {
             <Poster
               spec={line.product}
               palette={line.palette}
-              rootProps={{ 'aria-hidden': true, width: 40, height: 56 }}
+              rootProps={{ 'aria-hidden': true, ...ORDER_THUMBNAIL }}
             />
             <div className="flex flex-1 flex-col">
               <span>{line.product.name}</span>

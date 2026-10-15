@@ -4,6 +4,7 @@ import { PALETTES } from '../../src/catalog/palettes'
 import { sizeById } from '../../src/catalog/sizes'
 import { shippingCents } from '../../src/cart/totals'
 import { DELIVERY_LABELS } from '../../src/cart/delivery'
+import { CHECKOUT_PAGE, CHECKOUT_SUCCESS_PAGE, RETURNED_SESSION_PARAM } from '../../src/checkout/routes'
 import type { DeliveryId } from '../../src/cart/types'
 import type { Env } from './env'
 import type { CheckoutSessionInput } from './schema'
@@ -89,11 +90,13 @@ export function buildLineItems(
   for (const item of items) {
     const variant = parseSku(item.sku)
     const product = variant ? productBySlug(variant.productSlug) : undefined
+
     if (!variant || !product) return { ok: false }
 
     const size = sizeById(variant.sizeId)
     const palette = PALETTES[variant.paletteId]
     const unitCents = variantPriceCents(product, variant.sizeId)
+
     subtotal += unitCents * item.qty
 
     lineItems.push({
@@ -123,15 +126,18 @@ export function buildLineItems(
   return { ok: true, lineItems, shippingOptions, totalCents: subtotal + shipping }
 }
 
-export async function idempotencyKey(
-  orderId: string,
-  items: { sku: string; qty: number }[],
-  delivery: DeliveryId,
+export type IdempotencyInput = {
+  orderId: string
+  items: { sku: string; qty: number }[]
+  delivery: DeliveryId
   email?: string
-): Promise<string> {
+}
+
+export async function idempotencyKey({ orderId, items, delivery, email }: IdempotencyInput): Promise<string> {
   const sorted = [...items].sort((a, b) => a.sku.localeCompare(b.sku))
   const canonical = `${orderId}|${delivery}|${sorted.map(item => `${item.sku}:${item.qty}`).join(',')}|${email ?? ''}`
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(canonical))
+
   return Array.from(new Uint8Array(digest))
     .map(byte => byte.toString(16).padStart(2, '0'))
     .join('')
@@ -147,26 +153,29 @@ export async function createSession(
   env: Env
 ): Promise<CreateSessionResult> {
   const built = buildLineItems(input.items, input.delivery, env.SITE_URL)
+
   if (!built.ok) return { ok: false, status: 400, error: 'Unknown SKU' }
 
-  const key = await idempotencyKey(input.orderId, input.items, input.delivery, input.email)
+  const key = await idempotencyKey(input)
   const params: CheckoutSessionParams = {
     mode: 'payment',
     line_items: built.lineItems,
     shipping_options: built.shippingOptions,
-    success_url: `${env.SITE_URL}/checkout/success/?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${env.SITE_URL}/checkout/`,
+    success_url: `${env.SITE_URL}${CHECKOUT_SUCCESS_PAGE}?${RETURNED_SESSION_PARAM}={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${env.SITE_URL}${CHECKOUT_PAGE}`,
     metadata: { orderId: input.orderId },
     ...(input.email ? { customer_email: input.email } : {}),
   }
 
   let session: StripeCreatedSessionLike
+
   try {
     session = await stripe.checkout.sessions.create(params, { idempotencyKey: key })
   } catch {
     return { ok: false, status: 502, error: 'Could not create a checkout session' }
   }
   if (!session.url) return { ok: false, status: 502, error: 'Stripe did not return a checkout url' }
+
   return { ok: true, url: session.url, id: session.id }
 }
 
@@ -188,6 +197,7 @@ export async function getSession(stripe: StripeLike, id: string): Promise<GetSes
   if (!/^cs_[A-Za-z0-9_]{1,255}$/.test(id)) return { ok: false, status: 400, error: 'Invalid session id' }
   try {
     const session = await stripe.checkout.sessions.retrieve(id)
+
     return {
       ok: true,
       body: {
@@ -201,10 +211,12 @@ export async function getSession(stripe: StripeLike, id: string): Promise<GetSes
     }
   } catch (error) {
     const { code, statusCode } = error as { code?: unknown; statusCode?: unknown }
+
     if (code === 'resource_missing' || statusCode === 404) {
       return { ok: false, status: 404, error: 'Session not found' }
     }
     console.error('checkout: session lookup failed', code ?? statusCode ?? (error instanceof Error ? error.message : 'unknown'))
+
     return { ok: false, status: 502, error: 'Session lookup failed' }
   }
 }

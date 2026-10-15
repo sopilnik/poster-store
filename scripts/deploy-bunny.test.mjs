@@ -30,16 +30,19 @@ async function makeOutDir() {
 describe('readEnv', () => {
   test('throws naming the missing variable', () => {
     const source = { ...ENV, BUNNY_API_KEY: '' }
+
     expect(() => readEnv(source)).toThrow(/BUNNY_API_KEY/)
   })
 
   test('throws on a storage host outside bunny', () => {
     const source = { ...ENV, BUNNY_STORAGE_HOST: 'evil.example.com' }
+
     expect(() => readEnv(source)).toThrow(/bunny storage host/)
   })
 
   test('accepts a regional storage host', () => {
     const source = { ...ENV, BUNNY_STORAGE_HOST: 'ny.storage.bunnycdn.com' }
+
     expect(readEnv(source).BUNNY_STORAGE_HOST).toBe('ny.storage.bunnycdn.com')
   })
 })
@@ -48,6 +51,7 @@ describe('remotePath', () => {
   test('percent-encodes a space and a non-ASCII name', () => {
     const outDir = '/build/out'
     const file = path.join(outDir, 'my posters', 'плакат.png')
+
     expect(remotePath(file, outDir)).toBe('my%20posters/%D0%BF%D0%BB%D0%B0%D0%BA%D0%B0%D1%82.png')
   })
 })
@@ -73,13 +77,17 @@ describe('staleEntries', () => {
 describe('uploadFile', () => {
   test('retries a 5xx once and succeeds on 200', async () => {
     const outDir = await makeOutDir()
+
     try {
       const file = path.join(outDir, 'app.js')
+
       await writeFile(file, 'console.log(1)')
 
+      const timeoutSpy = vi.spyOn(AbortSignal, 'timeout')
       const calls = []
       const fetchImpl = vi.fn(async (url, options) => {
-        calls.push({ url, method: options.method })
+        calls.push({ url, method: options.method, body: options.body, accessKey: options.headers.AccessKey })
+
         return calls.length === 1 ? { ok: false, status: 503 } : { ok: true, status: 200 }
       })
 
@@ -87,16 +95,22 @@ describe('uploadFile', () => {
 
       expect(fetchImpl).toHaveBeenCalledTimes(2)
       expect(calls.every(call => call.method === 'PUT')).toBe(true)
+      expect(calls[1].body).toBe(calls[0].body)
+      expect(calls.every(call => call.accessKey === 'storage-secret')).toBe(true)
+      expect(timeoutSpy.mock.calls).toEqual([[60_000], [60_000]])
       expect(bytes).toBe(Buffer.byteLength('console.log(1)'))
     } finally {
+      vi.restoreAllMocks()
       await rm(outDir, { recursive: true, force: true })
     }
   }, 10_000)
 
   test('a 4xx does not retry and throws', async () => {
     const outDir = await makeOutDir()
+
     try {
       const file = path.join(outDir, 'app.js')
+
       await writeFile(file, 'console.log(1)')
 
       const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }))
@@ -112,8 +126,10 @@ describe('uploadFile', () => {
 describe('main', () => {
   test('an empty out/ throws before any request', async () => {
     const outDir = await makeOutDir()
+
     try {
       const fetchImpl = vi.fn()
+
       await expect(main({ env: ENV, fetchImpl, outDir, log: () => {} })).rejects.toThrow(/index\.html/)
       expect(fetchImpl).not.toHaveBeenCalled()
     } finally {
@@ -123,6 +139,7 @@ describe('main', () => {
 
   test('uploads before deleting stale entries and purges last, in order', async () => {
     const outDir = await makeOutDir()
+
     try {
       await mkdir(path.join(outDir, 'assets'))
       await writeFile(path.join(outDir, 'index.html'), '<html></html>')
@@ -141,12 +158,15 @@ describe('main', () => {
       const calls = []
       const fetchImpl = vi.fn(async (url, options = {}) => {
         const method = options.method ?? 'GET'
+
         calls.push({ method, url })
         if (method === 'GET') return jsonResponse(listings[url] ?? [])
+
         return { ok: true, status: 200 }
       })
 
       const logLines = []
+
       await main({ env: ENV, fetchImpl, outDir, log: line => logLines.push(line) })
 
       const methods = calls.map(call => call.method)
@@ -161,10 +181,12 @@ describe('main', () => {
       expect(postIndex).toBe(methods.length - 1)
 
       const putCalls = calls.filter(call => call.method === 'PUT')
+
       expect(putCalls[0].url.endsWith('/assets/app.js')).toBe(true)
       expect(putCalls[1].url.endsWith('/index.html')).toBe(true)
 
       const deleteCalls = calls.filter(call => call.method === 'DELETE')
+
       expect(deleteCalls[0].url.endsWith('/old.txt')).toBe(true)
       expect(deleteCalls[1].url.endsWith('/old-dir/inner.txt')).toBe(true)
       expect(deleteCalls[2].url.endsWith('/old-dir/')).toBe(true)
@@ -177,6 +199,24 @@ describe('main', () => {
       await rm(outDir, { recursive: true, force: true })
     }
   })
+
+  test('a listing that answers 4xx stops the deploy before any upload and names the path', async () => {
+    const outDir = await makeOutDir()
+
+    try {
+      await writeFile(path.join(outDir, 'index.html'), '<html></html>')
+
+      const timeoutSpy = vi.spyOn(AbortSignal, 'timeout')
+      const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }))
+
+      await expect(main({ env: ENV, fetchImpl, outDir, log: () => {} })).rejects.toThrow(/list failed \(404\) for \//)
+      expect(fetchImpl).toHaveBeenCalledTimes(1)
+      expect(timeoutSpy.mock.calls).toEqual([[30_000]])
+    } finally {
+      vi.restoreAllMocks()
+      await rm(outDir, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('purgeCache', () => {
@@ -184,6 +224,7 @@ describe('purgeCache', () => {
     const calls = []
     const fetchImpl = vi.fn(async (url, options) => {
       calls.push({ url, method: options.method })
+
       return calls.length === 1 ? { ok: false, status: 503 } : { ok: true, status: 200 }
     })
 

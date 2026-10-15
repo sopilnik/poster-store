@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 import { readEnv, type Env } from './env'
 import { handle } from './handler'
 import type { StripeLike } from './session'
+import { CACHE_CONTROL_HEADER, CONTENT_TYPE_HEADER, JSON_RESPONSE_TYPE, NO_STORE, NOSNIFF, NOSNIFF_HEADER } from './headers'
 
 function makeStripe(key: string): StripeLike {
   const client = new Stripe(key, { httpClient: Stripe.createFetchHttpClient() })
@@ -17,8 +18,10 @@ function makeStripe(key: string): StripeLike {
     webhooks: {
       constructEventAsync: async (payload, signature, secret) => {
         const event = await client.webhooks.constructEventAsync(payload, signature, secret, undefined, cryptoProvider)
+
         if (event.type === 'checkout.session.completed') {
           const session = event.data.object
+
           return {
             id: event.id,
             type: event.type,
@@ -31,6 +34,7 @@ function makeStripe(key: string): StripeLike {
             },
           }
         }
+
         // Other event types carry a `data.object` without a guaranteed `id`, so the local shape
         // is filled with the event id as a placeholder; dispatchEvent ignores every type but
         // checkout.session.completed.
@@ -50,12 +54,13 @@ const worker = {
       return await handle(request, readEnv(env), makeStripe)
     } catch (error) {
       console.error('checkout: unhandled error', error)
+
       return new Response(JSON.stringify({ error: 'Internal error' }), {
         status: 500,
         headers: {
-          'content-type': 'application/json; charset=utf-8',
-          'cache-control': 'no-store',
-          'x-content-type-options': 'nosniff',
+          [CONTENT_TYPE_HEADER]: JSON_RESPONSE_TYPE,
+          [CACHE_CONTROL_HEADER]: NO_STORE,
+          [NOSNIFF_HEADER]: NOSNIFF,
         },
       })
     }

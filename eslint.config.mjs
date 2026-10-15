@@ -18,6 +18,25 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Short single-purpose functions, blank lines around declarations and before every return, shallow nesting, low
+    // complexity and at most three parameters. The vendored primitives stay out, as above.
+    files: ['**/*.{ts,tsx,js,mjs,cjs,mts}'],
+    ignores: ['src/components/ui/**'],
+    rules: {
+      'max-lines-per-function': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
+      'max-depth': ['error', 3],
+      complexity: ['error', 10],
+      'max-params': ['error', 3],
+      'padding-line-between-statements': [
+        'error',
+        { blankLine: 'always', prev: '*', next: 'return' },
+        { blankLine: 'always', prev: ['const', 'let'], next: '*' },
+        { blankLine: 'always', prev: '*', next: ['const', 'let'] },
+        { blankLine: 'any', prev: ['const', 'let'], next: ['const', 'let'] },
+      ],
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
     ignores: ['src/posters/templates/**'],
     rules: {

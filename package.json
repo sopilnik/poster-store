@@ -15,7 +15,7 @@
     "dev": "pnpm render && next dev",
     "build": "pnpm render && next build",
     "preview": "node scripts/serve.mjs",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint --max-warnings=0 --no-warn-ignored app src functions scripts tests *.mjs *.mts *.ts",
     "typecheck": "next typegen && tsc --noEmit && tsc -p tsconfig.functions.json --noEmit && tsc -p tsconfig.scripts.json --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",

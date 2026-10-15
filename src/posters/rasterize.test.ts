@@ -11,12 +11,15 @@ const actualPath = join(process.cwd(), 'test-results', 'quiet-hours-paper.actual
 
 test('rasterised text poster matches the golden PNG', () => {
   const png = rasterize(renderPosterMarkup(requireProduct('quiet-hours'), PALETTES.paper), { width: 360 })
+
   if (process.env.UPDATE_GOLDEN) {
     mkdirSync(new URL('./__golden__/', import.meta.url), { recursive: true })
     writeFileSync(golden, png)
   }
   expect(existsSync(golden)).toBe(true)
+
   const same = Buffer.compare(png, readFileSync(golden)) === 0
+
   if (!same) {
     mkdirSync(join(process.cwd(), 'test-results'), { recursive: true })
     writeFileSync(actualPath, png)

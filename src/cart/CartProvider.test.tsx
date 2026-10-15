@@ -8,6 +8,7 @@ const variant = { productSlug: 'quiet-hours', sizeId: 'a2' as const, paletteId: 
 
 function Probe() {
   const { items, hydrated, dispatch } = useCart()
+
   return (
     <div>
       <p>hydrated: {String(hydrated)}</p>

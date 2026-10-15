@@ -45,6 +45,7 @@ function TextField({
 }) {
   const { field, fieldState } = useController({ control, name })
   const errorId = `${name}-error`
+
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={name}>{label}</Label>
@@ -67,6 +68,7 @@ function TextField({
 
 function CountryField({ control }: { control: Control<CheckoutInput> }) {
   const { field } = useController({ control, name: 'country' })
+
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-sm font-medium">Country</span>
@@ -97,6 +99,7 @@ function CountryField({ control }: { control: Control<CheckoutInput> }) {
 
 function DeliveryField({ control }: { control: Control<CheckoutInput> }) {
   const { field } = useController({ control, name: 'delivery' })
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">Delivery</span>
@@ -120,6 +123,7 @@ function DeliveryField({ control }: { control: Control<CheckoutInput> }) {
 
 function PaymentField({ control }: { control: Control<CheckoutInput> }) {
   const { field } = useController({ control, name: 'payment' })
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium">Payment</span>

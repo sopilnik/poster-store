@@ -13,8 +13,10 @@ export function Stripes({
 }) {
   const { count, angle, numeral } = params
   const bands: ReactElement[] = []
+
   if (angle === 0) {
     const bandHeight = H / count
+
     for (let i = 0; i < count; i++) {
       bands.push(
         <rect key={i} x="0" y={r(i * bandHeight)} width={W} height={r(bandHeight)} fill={i % 2 === 0 ? palette.ink : 'none'} />,
@@ -22,6 +24,7 @@ export function Stripes({
     }
   } else if (angle === 90) {
     const bandWidth = W / count
+
     for (let i = 0; i < count; i++) {
       bands.push(
         <rect key={i} x={r(i * bandWidth)} y="0" width={r(bandWidth)} height={H} fill={i % 2 === 0 ? palette.ink : 'none'} />,
@@ -34,6 +37,7 @@ export function Stripes({
     const startX = (W - bigW) / 2
     const startY = (H - bigH) / 2
     const bandHeight = bigH / count
+
     for (let i = 0; i < count; i++) {
       bands.push(
         <rect
@@ -47,9 +51,11 @@ export function Stripes({
       )
     }
   }
+
   const numeralSize = 520
   const numeralX = W / 2
   const numeralY = r(H / 2 + numeralSize * 0.35)
+
   return (
     <PosterRoot background={palette.background} rootProps={rootProps}>
       {angle === 30 ? <g transform="rotate(30 500 707)">{bands}</g> : bands}

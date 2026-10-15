@@ -12,17 +12,20 @@ function setup(value: number, onChange = vi.fn()) {
       increaseLabel="Increase quantity"
     />
   )
+
   return { onChange, field: screen.getByRole('textbox', { name: 'Quantity' }) }
 }
 
 test('typing a digit commits the value at once', () => {
   const { onChange, field } = setup(1)
+
   fireEvent.change(field, { target: { value: '5' } })
   expect(onChange).toHaveBeenCalledWith(5)
 })
 
 test('typing above the maximum clamps to it', () => {
   const { onChange, field } = setup(1)
+
   fireEvent.change(field, { target: { value: '50' } })
   expect(field).toHaveValue('10')
   expect(onChange).toHaveBeenCalledWith(10)
@@ -30,6 +33,7 @@ test('typing above the maximum clamps to it', () => {
 
 test('a non-digit character changes nothing', () => {
   const { onChange, field } = setup(1)
+
   fireEvent.change(field, { target: { value: '1a' } })
   expect(field).toHaveValue('1')
   expect(onChange).not.toHaveBeenCalled()
@@ -37,6 +41,7 @@ test('a non-digit character changes nothing', () => {
 
 test('clearing the field and blurring restores the committed value and calls nothing', () => {
   const { onChange, field } = setup(3)
+
   fireEvent.change(field, { target: { value: '' } })
   expect(onChange).not.toHaveBeenCalled()
   fireEvent.blur(field)
@@ -46,6 +51,7 @@ test('clearing the field and blurring restores the committed value and calls not
 
 test('ArrowUp from 1 gives 2', async () => {
   const { onChange, field } = setup(1)
+
   field.focus()
   await userEvent.keyboard('{ArrowUp}')
   expect(onChange).toHaveBeenCalledWith(2)
@@ -63,12 +69,14 @@ test('the increase button is disabled at the maximum', () => {
 
 test('the field has the given accessible name', () => {
   const { field } = setup(1)
+
   expect(field).toHaveAccessibleName('Quantity')
 })
 
 test('clicking the label around the field focuses it', async () => {
   const { field } = setup(1)
   const wrapper = field.closest('label')
+
   expect(wrapper).not.toBeNull()
   await userEvent.click(wrapper!)
   expect(field).toHaveFocus()

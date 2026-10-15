@@ -66,6 +66,7 @@ export function ProductOptions({ product }: { product: Product }) {
           >
             {product.palettes.map(id => {
               const p = PALETTES[id]
+
               return (
                 <label key={id} className="flex items-center gap-2 font-normal">
                   <Radio.Root

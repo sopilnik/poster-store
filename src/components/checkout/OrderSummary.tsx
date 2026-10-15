@@ -4,6 +4,7 @@ import type { DeliveryId, PricedLine } from '@/cart/types'
 import { DELIVERY_LABELS } from '@/cart/delivery'
 import { Poster } from '@/posters/Poster'
 import { formatCents } from '@/lib/money'
+import { ORDER_THUMBNAIL } from './thumbnail'
 
 export function OrderSummary({ lines, delivery }: { lines: PricedLine[]; delivery: DeliveryId }) {
   const subtotal = subtotalCents(lines)
@@ -26,7 +27,7 @@ export function OrderSummary({ lines, delivery }: { lines: PricedLine[]; deliver
             <Poster
               spec={line.product}
               palette={line.palette}
-              rootProps={{ 'aria-hidden': true, width: 40, height: 56 }}
+              rootProps={{ 'aria-hidden': true, ...ORDER_THUMBNAIL }}
             />
             <div className="flex flex-1 flex-col">
               <span>{line.product.name}</span>

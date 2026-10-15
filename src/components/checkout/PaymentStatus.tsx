@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { SESSION_ID_PARAM, SESSION_ROUTE } from '@/checkout/routes'
 import { formatCents } from '@/lib/money'
 import { CHECKOUT_API, hasCheckoutApi } from '@/lib/site'
 
@@ -8,10 +9,13 @@ type SessionStatus = { payment_status: string; amount_total: number | null; orde
 
 function isSessionStatus(value: unknown): value is SessionStatus {
   if (!value || typeof value !== 'object') return false
+
   const candidate = value as Record<string, unknown>
+
   if (typeof candidate.payment_status !== 'string') return false
   if (typeof candidate.amount_total !== 'number' && candidate.amount_total !== null) return false
   if (typeof candidate.orderId !== 'string' && candidate.orderId !== null) return false
+
   return true
 }
 
@@ -29,23 +33,27 @@ export function PaymentStatus({
   const [state, setState] = useState<State>({ kind: 'loading' })
 
   const onPaidRef = useRef(onPaid)
+
   useEffect(() => {
     onPaidRef.current = onPaid
   })
 
   useEffect(() => {
     if (!sessionId || !hasCheckoutApi()) return
+
     let cancelled = false
 
-    fetch(`${CHECKOUT_API}/checkout/session?id=${encodeURIComponent(sessionId)}`)
+    fetch(`${CHECKOUT_API}${SESSION_ROUTE}?${SESSION_ID_PARAM}=${encodeURIComponent(sessionId)}`)
       .then(response => {
         if (!response.ok) throw new Error('session lookup failed')
+
         return response.json() as Promise<unknown>
       })
       .then(body => {
         if (cancelled) return
         if (!isSessionStatus(body)) {
           setState({ kind: 'unavailable' })
+
           return
         }
         if (body.payment_status === 'paid' && typeof body.amount_total === 'number' && body.orderId === orderId) {

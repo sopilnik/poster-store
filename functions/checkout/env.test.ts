@@ -9,11 +9,13 @@ const RAW = {
 
 test('accepts a restricted test key', () => {
   const env = readEnv({ ...RAW, STRIPE_SECRET_KEY: 'rk_test_x' })
+
   expect(env.STRIPE_SECRET_KEY).toBe('rk_test_x')
 })
 
 test('accepts a secret test key', () => {
   const env = readEnv({ ...RAW, STRIPE_SECRET_KEY: 'sk_test_x' })
+
   expect(env.STRIPE_SECRET_KEY).toBe('sk_test_x')
 })
 
@@ -31,5 +33,6 @@ test('refuses a key of another shape', () => {
 
 test('still reports a missing key first', () => {
   const rest = { STRIPE_WEBHOOK_SECRET: RAW.STRIPE_WEBHOOK_SECRET, SITE_URL: RAW.SITE_URL }
+
   expect(() => readEnv(rest)).toThrow('Missing environment variable: STRIPE_SECRET_KEY')
 })

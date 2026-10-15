@@ -1,0 +1,16 @@
+// Header names and values the checkout Worker reads and sends.
+export const CONTENT_TYPE_HEADER = 'content-type'
+export const CONTENT_LENGTH_HEADER = 'content-length'
+export const CACHE_CONTROL_HEADER = 'cache-control'
+export const NOSNIFF_HEADER = 'x-content-type-options'
+export const SIGNATURE_HEADER = 'stripe-signature'
+export const ORIGIN_HEADER = 'origin'
+export const ALLOW_ORIGIN_HEADER = 'Access-Control-Allow-Origin'
+export const ALLOW_METHODS_HEADER = 'Access-Control-Allow-Methods'
+export const ALLOW_HEADERS_HEADER = 'Access-Control-Allow-Headers'
+
+export const JSON_CONTENT_TYPE = 'application/json'
+export const JSON_RESPONSE_TYPE = 'application/json; charset=utf-8'
+export const NO_STORE = 'no-store'
+export const NOSNIFF = 'nosniff'
+export const ALLOWED_METHODS = 'POST, GET, OPTIONS'
