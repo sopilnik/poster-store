@@ -4,6 +4,7 @@ import { COLLECTIONS } from '@/catalog/collections'
 import { CartProvider } from '@/cart/CartProvider'
 import { Header } from './Header'
 import { ThemeProvider } from './ThemeProvider'
+import { expectAdminDemoLink } from './test-helpers'
 
 let pathname = '/'
 
@@ -25,6 +26,18 @@ test('links to the shop and a collection', () => {
   )
   expect(screen.getByRole('link', { name: 'Shop' })).toHaveAttribute('href', '/shop/')
   expect(screen.getByRole('link', { name: 'Night' })).toHaveAttribute('href', '/collections/night/')
+})
+
+test('links to the admin panel demo in a new tab', () => {
+  render(
+    <ThemeProvider>
+      <CartProvider>
+        <Header />
+      </CartProvider>
+    </ThemeProvider>
+  )
+
+  expectAdminDemoLink('Admin panel')
 })
 
 test('the theme control and its three segments have accessible names, and clicking Dark sets the theme', async () => {

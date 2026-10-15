@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BRAND } from '@/lib/site'
+import { AdminLink } from './AdminLink'
 import { ThemeToggle } from './ThemeToggle'
 import { CartButton } from './CartButton'
 import { MobileMenu } from './MobileMenu'
@@ -16,6 +17,7 @@ export function Header() {
           <NavLinks linkClassName="hover:text-primary" />
         </nav>
         <div className="flex items-center gap-4">
+          <AdminLink />
           <ThemeToggle />
           <CartButton />
           <MobileMenu />
