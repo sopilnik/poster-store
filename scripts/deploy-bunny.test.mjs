@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import {
+  keptPaths,
   main,
   purgeCache,
   readEnv,
@@ -19,8 +20,29 @@ const ENV = {
   BUNNY_API_KEY: 'api-secret',
 }
 
+const STORAGE_ROOT = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/`
+
 function jsonResponse(body) {
   return { ok: true, status: 200, json: async () => body }
+}
+
+// A storage zone whose GET answers come from `responses`, keyed by the path under the zone; every call is recorded.
+function fakeStorage(responses) {
+  const calls = []
+  const fetchImpl = vi.fn(async (url, options = {}) => {
+    const method = options.method ?? 'GET'
+    const storagePath = url.slice(STORAGE_ROOT.length)
+
+    calls.push({ method, path: storagePath, body: options.body })
+
+    if (method === 'GET') {
+      return jsonResponse(responses[storagePath] ?? [])
+    }
+
+    return { ok: true, status: 200 }
+  })
+
+  return { calls, fetchImpl }
 }
 
 async function makeOutDir() {
@@ -138,29 +160,18 @@ describe('main', () => {
     }
   })
 
-  test('uploads before deleting stale entries and purges last, in order', async () => {
+  test('uploads the build, deletes what neither build holds, records the build and purges twice, in order', async () => {
     const outDir = await makeOutDir()
-    const rootUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/`
-    const oldDirUrl = `https://${ENV.BUNNY_STORAGE_HOST}/${ENV.BUNNY_STORAGE_ZONE}/old-dir/`
-    const listings = {
-      [rootUrl]: [
+    const { calls, fetchImpl } = fakeStorage({
+      '': [
         { ObjectName: 'old.txt', IsDirectory: false },
         { ObjectName: 'old-dir', IsDirectory: true },
+        { ObjectName: 'deploy-manifest.json', IsDirectory: false },
       ],
-      [oldDirUrl]: [{ ObjectName: 'inner.txt', IsDirectory: false }],
-    }
-    const calls = []
-    const fetchImpl = vi.fn(async (url, options = {}) => {
-      const method = options.method ?? 'GET'
-
-      calls.push({ method, url })
-
-      if (method === 'GET') {
-        return jsonResponse(listings[url] ?? [])
-      }
-
-      return { ok: true, status: 200 }
+      'old-dir/': [{ ObjectName: 'inner.txt', IsDirectory: false }],
+      'deploy-manifest.json': { files: ['index.html'] },
     })
+    const pause = async ms => calls.push({ method: 'PAUSE', path: String(ms) })
     const logLines = []
 
     try {
@@ -168,32 +179,29 @@ describe('main', () => {
       await writeFile(path.join(outDir, 'index.html'), '<html></html>')
       await writeFile(path.join(outDir, 'assets', 'app.js'), 'console.log(1)')
 
-      await main({ env: ENV, fetchImpl, outDir, log: line => logLines.push(line) })
+      await main({ env: ENV, fetchImpl, outDir, log: line => logLines.push(line), pause })
 
       const methods = calls.map(call => call.method)
-      const getCount = methods.filter(method => method === 'GET').length
-      const lastPutIndex = methods.lastIndexOf('PUT')
-      const firstDeleteIndex = methods.indexOf('DELETE')
-      const postIndex = methods.indexOf('POST')
-      const putCalls = calls.filter(call => call.method === 'PUT')
-      const deleteCalls = calls.filter(call => call.method === 'DELETE')
+      const paths = calls.map(call => call.path)
 
-      expect(getCount).toBe(2)
-      expect(methods.slice(0, 2)).toEqual(['GET', 'GET'])
-      expect(lastPutIndex).toBeLessThan(firstDeleteIndex)
-      expect(postIndex).toBe(methods.length - 1)
-
-      expect(putCalls[0].url.endsWith('/assets/app.js')).toBe(true)
-      expect(putCalls[1].url.endsWith('/index.html')).toBe(true)
-
-      expect(deleteCalls[0].url.endsWith('/old.txt')).toBe(true)
-      expect(deleteCalls[1].url.endsWith('/old-dir/inner.txt')).toBe(true)
-      expect(deleteCalls[2].url.endsWith('/old-dir/')).toBe(true)
+      expect(methods).toEqual(['GET', 'GET', 'GET', 'PUT', 'PUT', 'DELETE', 'DELETE', 'DELETE', 'PUT', 'POST', 'PAUSE', 'POST'])
+      expect(paths.slice(0, 9)).toEqual([
+        '',
+        'old-dir/',
+        'deploy-manifest.json',
+        'assets/app.js',
+        'index.html',
+        'old.txt',
+        'old-dir/inner.txt',
+        'old-dir/',
+        'deploy-manifest.json',
+      ])
+      expect(paths[10]).toBe('60000')
 
       expect(logLines).toHaveLength(1)
       expect(logLines[0]).toMatch(/uploaded 2 file\(s\)/)
       expect(logLines[0]).toMatch(/removed 2 file\(s\) and 1 empty directory\(ies\)/)
-      expect(logLines[0]).toMatch(/cache purged/)
+      expect(logLines[0]).toMatch(/cache purged twice/)
     } finally {
       await rm(outDir, { recursive: true, force: true })
     }
@@ -216,6 +224,86 @@ describe('main', () => {
       vi.restoreAllMocks()
       await rm(outDir, { recursive: true, force: true })
     }
+  })
+})
+
+describe('keptPaths', () => {
+  test('keeps this build, the previous build and the manifest', () => {
+    const remoteEntries = [
+      { path: 'index.html', isDirectory: false },
+      { path: 'old.js', isDirectory: false },
+    ]
+
+    const kept = keptPaths({ remoteEntries, localPaths: ['index.html', 'new.js'], previousPaths: ['index.html', 'old.js'] })
+
+    expect(kept).toEqual(['index.html', 'new.js', 'index.html', 'old.js', 'deploy-manifest.json'])
+  })
+
+  test('without a manifest keeps every remote file', () => {
+    const remoteEntries = [
+      { path: 'assets', isDirectory: true },
+      { path: 'assets/old.js', isDirectory: false },
+    ]
+
+    const kept = keptPaths({ remoteEntries, localPaths: ['index.html'], previousPaths: null })
+
+    expect(kept).toEqual(['index.html', 'assets/old.js', 'deploy-manifest.json'])
+  })
+})
+
+describe('main and the previous build', () => {
+  const noPause = async () => {}
+
+  async function deployBuild(responses) {
+    const outDir = await makeOutDir()
+    const storage = fakeStorage(responses)
+
+    try {
+      await mkdir(path.join(outDir, '_next'))
+      await writeFile(path.join(outDir, 'index.html'), '<html></html>')
+      await writeFile(path.join(outDir, '_next', 'new.js'), 'console.log(2)')
+
+      await main({ env: ENV, fetchImpl: storage.fetchImpl, outDir, log: () => {}, pause: noPause })
+    } finally {
+      await rm(outDir, { recursive: true, force: true })
+    }
+
+    return storage.calls
+  }
+
+  test('deletes only what neither build holds and records this build', async () => {
+    const calls = await deployBuild({
+      '': [{ ObjectName: 'index.html' }, { ObjectName: 'deploy-manifest.json' }, { ObjectName: '_next', IsDirectory: true }],
+      '_next/': [{ ObjectName: 'old.js' }, { ObjectName: 'older.js' }],
+      'deploy-manifest.json': { files: ['index.html', '_next/old.js'] },
+    })
+
+    const deleted = calls.filter(call => call.method === 'DELETE').map(call => call.path)
+    const manifestPut = calls.find(call => call.method === 'PUT' && call.path === 'deploy-manifest.json')
+
+    expect(deleted).toEqual(['_next/older.js'])
+    expect(JSON.parse(manifestPut.body)).toEqual({ files: ['_next/new.js', 'index.html'] })
+  })
+
+  test('without a manifest in storage reads none and deletes nothing', async () => {
+    const calls = await deployBuild({
+      '': [{ ObjectName: 'index.html' }, { ObjectName: 'old.js' }],
+    })
+
+    const reads = calls.filter(call => call.method === 'GET').map(call => call.path)
+
+    expect(reads).toEqual([''])
+    expect(calls.some(call => call.method === 'DELETE')).toBe(false)
+    expect(calls.some(call => call.method === 'PUT' && call.path === 'deploy-manifest.json')).toBe(true)
+  })
+
+  test('an unreadable manifest deletes nothing', async () => {
+    const calls = await deployBuild({
+      '': [{ ObjectName: 'old.js' }, { ObjectName: 'deploy-manifest.json' }],
+      'deploy-manifest.json': [],
+    })
+
+    expect(calls.some(call => call.method === 'DELETE')).toBe(false)
   })
 })
 

@@ -1,7 +1,10 @@
 // @ts-check
-// main() uploads non-HTML files before HTML, then deletes every remote file
-// (deepest directories first) that is absent from the current build, then
-// purges the pull zone's cache.
+// main() uploads non-HTML files before HTML, deletes every remote file
+// (deepest directories first) that belongs to neither this build nor the
+// previous one, records this build in a manifest, then purges the pull zone's
+// cache twice. The previous build stays because an edge can still cache one
+// of its pages from a storage replica the upload has not reached yet; that
+// page keeps working until the second purge or the next deploy clears it.
 import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -9,6 +12,8 @@ import { fileURLToPath } from 'node:url'
 const OUT_DIR = path.resolve(process.cwd(), 'out')
 const INDEX_FILE = 'index.html'
 const HTML_EXTENSION = '.html'
+const MANIFEST_FILE = 'deploy-manifest.json'
+const SECOND_PURGE_DELAY_MS = 60_000
 
 const REQUIRED_VARS = [
   'BUNNY_STORAGE_ZONE',
@@ -227,22 +232,79 @@ async function listRemote(env, fetchImpl, dir = '') {
 
 /**
  * @param {RemoteEntry[]} remoteEntries
- * @param {string[]} localPaths
+ * @param {string[]} keptPaths
  * @returns {{ staleFiles: string[], staleDirs: string[] }}
  */
-export function staleEntries(remoteEntries, localPaths) {
-  const local = new Set(localPaths)
+export function staleEntries(remoteEntries, keptPaths) {
+  const kept = new Set(keptPaths)
   const staleFiles = remoteEntries
     .filter(e => !e.isDirectory)
     .map(e => e.path)
-    .filter(p => !local.has(p))
+    .filter(p => !kept.has(p))
   const staleDirs = remoteEntries
     .filter(e => e.isDirectory)
     .map(e => e.path)
-    .filter(dir => ![...local].some(p => p === dir || p.startsWith(`${dir}/`)))
+    .filter(dir => ![...kept].some(p => p === dir || p.startsWith(`${dir}/`)))
     .sort((a, b) => b.split('/').length - a.split('/').length)
 
   return { staleFiles, staleDirs }
+}
+
+/**
+ * The paths a deploy keeps: this build, the previous one and the manifest. Without a manifest every remote file
+ * counts as the previous build, so nothing is deleted.
+ * @param {{ remoteEntries: RemoteEntry[], localPaths: string[], previousPaths: string[] | null }} builds
+ * @returns {string[]}
+ */
+export function keptPaths({ remoteEntries, localPaths, previousPaths }) {
+  const previous = previousPaths ?? remoteEntries.filter(e => !e.isDirectory).map(e => e.path)
+
+  return [...localPaths, ...previous, MANIFEST_FILE]
+}
+
+/**
+ * @param {unknown} value
+ * @returns {value is { files: string[] }}
+ */
+function isManifest(value) {
+  if (typeof value !== 'object' || value === null || !('files' in value)) {
+    return false
+  }
+
+  const { files } = /** @type {{ files: unknown }} */ (value)
+
+  return Array.isArray(files) && files.every(file => typeof file === 'string')
+}
+
+/**
+ * The files the previous deploy uploaded; null when it left no manifest or an unreadable one.
+ * @param {DeployEnv} env
+ * @param {{ remoteEntries: RemoteEntry[], fetchImpl: typeof fetch }} context
+ * @returns {Promise<string[] | null>}
+ */
+async function readManifest(env, { remoteEntries, fetchImpl }) {
+  if (!remoteEntries.some(e => e.path === MANIFEST_FILE)) {
+    return null
+  }
+
+  const init = { headers: { [ACCESS_KEY_HEADER]: env.BUNNY_STORAGE_PASSWORD } }
+  const response = await fetchWithRetry(fetchImpl, { url: storageUrl(env, MANIFEST_FILE), init, what: 'manifest read' })
+  const manifest = await response.json().catch(() => null)
+
+  return isManifest(manifest) ? manifest.files : null
+}
+
+/**
+ * @param {DeployEnv} env
+ * @param {string[]} files
+ * @param {typeof fetch} fetchImpl
+ * @returns {Promise<void>}
+ */
+async function writeManifest(env, files, fetchImpl) {
+  const headers = { [ACCESS_KEY_HEADER]: env.BUNNY_STORAGE_PASSWORD, [CONTENT_TYPE_HEADER]: 'application/json' }
+  const init = { method: 'PUT', headers, body: JSON.stringify({ files }) }
+
+  await fetchWithRetry(fetchImpl, { url: storageUrl(env, MANIFEST_FILE), init, what: 'manifest upload' })
 }
 
 /**
@@ -260,12 +322,12 @@ async function deleteRemote(env, { remote, isDirectory }, fetchImpl) {
 
 /**
  * @param {DeployEnv} env
- * @param {{ remoteEntries: RemoteEntry[], localPaths: string[] }} snapshot
+ * @param {{ remoteEntries: RemoteEntry[], keptPaths: string[] }} snapshot
  * @param {typeof fetch} fetchImpl
  * @returns {Promise<{ files: number, dirs: number }>}
  */
-async function removeStale(env, { remoteEntries, localPaths }, fetchImpl) {
-  const { staleFiles, staleDirs } = staleEntries(remoteEntries, localPaths)
+async function removeStale(env, { remoteEntries, keptPaths }, fetchImpl) {
+  const { staleFiles, staleDirs } = staleEntries(remoteEntries, keptPaths)
 
   for (const remote of staleFiles) {
     await deleteRemote(env, { remote, isDirectory: false }, fetchImpl)
@@ -290,10 +352,10 @@ export async function purgeCache(env, { fetchImpl = fetch } = {}) {
 }
 
 /**
- * @param {{ env: DeployEnv, fetchImpl?: typeof fetch, outDir?: string, log?: (message: string) => void }} options
+ * @param {{ env: DeployEnv, fetchImpl?: typeof fetch, outDir?: string, log?: (message: string) => void, pause?: (ms: number) => Promise<void> }} options
  * @returns {Promise<void>}
  */
-export async function main({ env, fetchImpl = fetch, outDir = OUT_DIR, log = console.log }) {
+export async function main({ env, fetchImpl = fetch, outDir = OUT_DIR, log = console.log, pause = sleep }) {
   const outStat = await stat(outDir).catch(() => null)
 
   if (!outStat || !outStat.isDirectory()) {
@@ -311,6 +373,7 @@ export async function main({ env, fetchImpl = fetch, outDir = OUT_DIR, log = con
   const orderedFiles = [...nonHtmlFiles, ...htmlFiles]
 
   const remoteEntries = await listRemote(env, fetchImpl)
+  const previousPaths = await readManifest(env, { remoteEntries, fetchImpl })
 
   let totalBytes = 0
 
@@ -319,13 +382,17 @@ export async function main({ env, fetchImpl = fetch, outDir = OUT_DIR, log = con
   }
 
   const localPaths = orderedFiles.map(file => remotePath(file, outDir))
-  const removed = await removeStale(env, { remoteEntries, localPaths }, fetchImpl)
+  const kept = keptPaths({ remoteEntries, localPaths, previousPaths })
+  const removed = await removeStale(env, { remoteEntries, keptPaths: kept }, fetchImpl)
 
+  await writeManifest(env, localPaths, fetchImpl)
+  await purgeCache(env, { fetchImpl })
+  await pause(SECOND_PURGE_DELAY_MS)
   await purgeCache(env, { fetchImpl })
 
   log(
     `deploy-bunny: uploaded ${files.length} file(s), ${totalBytes} byte(s), ` +
-      `removed ${removed.files} file(s) and ${removed.dirs} empty directory(ies), cache purged`
+      `removed ${removed.files} file(s) and ${removed.dirs} empty directory(ies), cache purged twice`
   )
 }
 
