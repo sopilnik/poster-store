@@ -107,8 +107,11 @@ const REQUEST_RETRIES = 3
 const RETRY_DELAY_MS = 500
 const UPLOAD_TIMEOUT_MS = 60_000
 const REQUEST_TIMEOUT_MS = 30_000
-// Responses from this status up are retried; anything below it fails at once.
+// Responses from this status up are retried, and so are RETRIED_CLIENT_STATUSES; any other status fails at once.
 const SERVER_ERROR_STATUS = 500
+// Client errors a later attempt can clear: bunny storage once answered a one-off 400 to an upload that went through
+// on a rerun, and 408 and 429 ask the client to try again.
+const RETRIED_CLIENT_STATUSES = new Set([400, 408, 429])
 const ACCESS_KEY_HEADER = 'AccessKey'
 const CONTENT_TYPE_HEADER = 'Content-Type'
 const BUNNY_API_ORIGIN = 'https://api.bunny.net'
@@ -128,6 +131,14 @@ function sleep(ms) {
  */
 function storageUrl(env, storagePath) {
   return `https://${env.BUNNY_STORAGE_HOST}/${env.BUNNY_STORAGE_ZONE}/${storagePath}`
+}
+
+/**
+ * @param {number} status
+ * @returns {boolean}
+ */
+function isRetried(status) {
+  return status >= SERVER_ERROR_STATUS || RETRIED_CLIENT_STATUSES.has(status)
 }
 
 /**
@@ -174,7 +185,7 @@ async function fetchWithRetry(fetchImpl, { url, init, what, where, timeoutMs = R
 
     const failure = new Error(`${what} failed (${response.status})${where ? ` for ${where}` : ''}`)
 
-    if (response.status < SERVER_ERROR_STATUS) {
+    if (!isRetried(response.status)) {
       throw failure
     }
 

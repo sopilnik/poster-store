@@ -97,7 +97,7 @@ describe('staleEntries', () => {
 })
 
 describe('uploadFile', () => {
-  test('retries a 5xx once and succeeds on 200', async () => {
+  test.each([503, 400, 408, 429])('retries a one-off %i once and succeeds on 200', async status => {
     const outDir = await makeOutDir()
 
     try {
@@ -110,7 +110,7 @@ describe('uploadFile', () => {
       const fetchImpl = vi.fn(async (url, options) => {
         calls.push({ url, method: options.method, body: options.body, accessKey: options.headers.AccessKey })
 
-        return calls.length === 1 ? { ok: false, status: 503 } : { ok: true, status: 200 }
+        return calls.length === 1 ? { ok: false, status } : { ok: true, status: 200 }
       })
 
       const bytes = await uploadFile(ENV, file, { outDir, fetchImpl })
@@ -127,7 +127,7 @@ describe('uploadFile', () => {
     }
   }, 10_000)
 
-  test('a 4xx does not retry and throws', async () => {
+  test('a 404 does not retry and throws', async () => {
     const outDir = await makeOutDir()
 
     try {
@@ -207,7 +207,7 @@ describe('main', () => {
     }
   })
 
-  test('a listing that answers 4xx stops the deploy before any upload and names the path', async () => {
+  test('a listing that answers 404 stops the deploy before any upload and names the path', async () => {
     const outDir = await makeOutDir()
 
     try {
@@ -322,7 +322,7 @@ describe('purgeCache', () => {
     expect(calls.every(call => call.method === 'POST')).toBe(true)
   }, 10_000)
 
-  test('a 4xx does not retry and throws', async () => {
+  test('a 404 does not retry and throws', async () => {
     const fetchImpl = vi.fn(async () => ({ ok: false, status: 404 }))
 
     await expect(purgeCache(ENV, { fetchImpl })).rejects.toThrow(/purge failed \(404\)/)
