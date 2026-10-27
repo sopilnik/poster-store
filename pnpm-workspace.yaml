@@ -9,6 +9,3 @@ minimumReleaseAgeExclude:
   - '@vitest/mocker@5.0.1'
   - '@vitest/spy@5.0.1'
   - vitest@5.0.1
-# miniflare (under wrangler) pins undici 7.29.1 exactly; a plain update cannot move it.
-overrides:
-  undici@>=7.0.0 <7.30.1: 7.30.1
